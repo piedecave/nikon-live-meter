@@ -28,3 +28,10 @@
 .v6-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .v6-controls button.on{background:#f5cf64;color:#15191f;border-color:#f5cf64}
 #freeze-status.frozen{color:#f5cf64;font-weight:700}
+
+/* V6.1: controllo spot visibile anche su Safari iPhone */
+#spot-tap.on{background:#f5cf64!important;color:#15191f!important;border-color:#f5cf64!important;box-shadow:0 0 0 2px #f5cf6480}
+.camera-wrap.spot-enabled{touch-action:manipulation;cursor:crosshair}
+.camera-wrap.spot-enabled .roi-spot{box-shadow:0 0 0 2px #000b,0 0 14px #f5cf64;z-index:3}
+.camera-wrap.spot-enabled .camera-label{pointer-events:none}
+#spot-status{min-height:2.5em}

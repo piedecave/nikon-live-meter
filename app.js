@@ -21,6 +21,7 @@
   fill('cal-time',TIMES,1/125,fmtTime);fill('cal-f',APERTURES,8,fmtF);fill('cal-iso',ISO,100,x=>String(x));
   let stream=null, loop=null, facing='environment', last=null,calibration=null,lastOut=null;
   let frozen=false, spotTap=false, spot={x:0.5,y:0.5};
+  let spotReference=null; // riferimento tonale precedente per confrontare due punti
   let calibrations={};
   const CAL_KEY='nikon-live-calibration-v6-cameras';
   let selectedCameraId='',cameraBusy=false;
@@ -290,11 +291,19 @@
     $('spot-tap').textContent='Spot al tocco: '+(spotTap?'ON':'OFF');
     $('spot-tap').setAttribute('aria-pressed',String(spotTap));
     $('spot-tap').classList.toggle('on',spotTap);
-    if(spotTap){$('metering').value='spot';}
+    if(spotTap){
+      // Conserva la luminanza della precedente area per mostrare subito la differenza tonale.
+      if(last && baseline===null) baseline=last.median;
+      $('metering').value='spot';
+      $('spot-status').textContent='Spot ATTIVO: tocca il punto da misurare dentro l’anteprima.';
+    } else {
+      $('spot-status').textContent='Spot disattivato. Puoi riattivarlo e toccare la scena.';
+      $('metering').value='matrix';
+    }
     updateROI();showCalibration();
     if(stream)analyze();
   });
-  $('camera-wrap-control').addEventListener('click',event=>{
+  function handleSpotTouch(event){
     if(!spotTap || !stream) return;
     const video=$('camera');
     const rect=video.getBoundingClientRect();
@@ -314,9 +323,21 @@
     const markerY=clamp(event.clientY-wrap.top,0,wrap.height);
     $('roi').style.setProperty('--spot-x',100*markerX/wrap.width+'%');
     $('roi').style.setProperty('--spot-y',100*markerY/wrap.height+'%');
-    baseline=null;
-    $('spot-status').textContent='Spot selezionato nel punto toccato. Tocca altrove per cambiare zona.';
+    // Non azzerare il riferimento relativo: in caso contrario il cambio di punto
+    // viene immediatamente annullato dal nuovo fotogramma di riferimento.
+    $('spot-status').textContent='Spot aggiornato: '+Math.round(spot.x*100)+'% orizzontale, '+Math.round(spot.y*100)+'% verticale. Tocca altrove per confrontare la luce.';
     showCalibration();if(stream)analyze();
+  }
+  // pointerup supporta il tocco iOS e il mouse; click è il fallback per browser più vecchi.
+  let lastPointerAt=0;
+  $('camera-wrap-control').addEventListener('pointerup',event=>{
+    if(!spotTap || !stream)return;
+    lastPointerAt=Date.now();
+    handleSpotTouch(event);
+  });
+  $('camera-wrap-control').addEventListener('click',event=>{
+    if(Date.now()-lastPointerAt<600)return;
+    handleSpotTouch(event);
   });
   $('start-camera').addEventListener('click',()=>startCamera());
   $('stop-camera').addEventListener('click',()=>{stopCamera();cameraStatus('Videocamera disattivata.');});
@@ -335,7 +356,9 @@
     $('spot-tap').textContent='Spot al tocco: '+(spotTap?'ON':'OFF');
     $('spot-tap').setAttribute('aria-pressed',String(spotTap));
     $('spot-tap').classList.toggle('on',spotTap);
-    updateROI();baseline=null;showCalibration();recalculate();if(stream)analyze();
+    // Il cambio modalità conserva la lettura precedente per confrontare subito le aree.
+    if(last && baseline===null)baseline=last.median;
+    updateROI();showCalibration();recalculate();if(stream)analyze();
   });
   $('preset').addEventListener('change',()=>{baseline=last?last.median:null;applyPreset($('preset').value);});
   for(const id of ['aperture','iso','comp','target','iso-max','tone-correction'])$(id).addEventListener('change',recalculate);
