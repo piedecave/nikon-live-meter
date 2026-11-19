@@ -389,16 +389,6 @@
   });
   $('copy-settings').addEventListener('click',async()=>{if(!lastOut)return;const o=lastOut;const val=`Nikon Z6 III | M | ${fmtTime(o.shutterSeconds)} | ${fmtF(o.aperture)} | ISO ${o.iso} | EV100 ${o.ev.toFixed(2)} | Comp. ${o.comp.toFixed(2)} EV | ${o.source}`;try{await navigator.clipboard.writeText(val);$('copy-feedback').textContent='Valori copiati negli appunti.';}catch(e){$('copy-feedback').textContent='Copia automatica non disponibile: seleziona manualmente i valori mostrati.';}});
   $('send-scriptable').addEventListener('click',()=>{if(!lastOut)return;const o=lastOut;const query=new URLSearchParams({ev:o.ev.toFixed(3),iso:String(o.iso),aperture:String(o.aperture),shutter:String(o.shutterSeconds)});window.location.href='scriptable:///run/Nikon%20Live%20Import?'+query.toString();});
-  function showPage(page){
-    for(const name of ['meter','tools','guide']){
-      $('view-'+name).hidden=name!==page;
-      $('tab-'+name).classList.toggle('selected',name===page);
-      $('tab-'+name).setAttribute('aria-pressed',String(name===page));
-    }
-    if(page==='guide') stopCamera();
-    window.scrollTo({top:0,behavior:'instant'});
-  }
-  for(const name of ['meter','tools','guide'])$('tab-'+name).addEventListener('click',()=>showPage(name));
   window.addEventListener('pagehide',stopCamera);
   updateZoom(1);$('tone-correction').checked=true;showCalibration();applyPreset('travel');$('roi').className='roi roi-matrix';
   if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});

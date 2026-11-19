@@ -1,8 +1,8 @@
 {
-  "name": "Nikon Z6 III · Live Meter V7",
+  "name": "Nikon Z6 III · Live Meter V7.1",
   "short_name": "Nikon Live",
   "description": "Assistente esposimetrico Nikon Z6 III con fotocamere iPhone, zoom, spot al tocco, blocco lettura e calibrazione per camera",
-  "start_url": "./index.html",
+  "start_url": "./index.html?v=71",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0d131b",

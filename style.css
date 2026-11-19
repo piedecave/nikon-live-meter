@@ -71,3 +71,8 @@ main{max-width:760px;padding:10px 10px 24px}
 #view-tools .card{margin-bottom:10px}
 #view-tools .stats{grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:370px){.readout strong{font-size:20px}.meter-meta b{font-size:10px}}
+
+/* V7.1: garantisce che nessun pannello nascosto copra la navigazione */
+.tabs{isolation:isolate;z-index:100;touch-action:manipulation}
+.tabs button{touch-action:manipulation;position:relative;z-index:1}
+[hidden]{display:none!important}
