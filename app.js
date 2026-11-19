@@ -21,6 +21,24 @@
   fill('cal-time',TIMES,1/125,fmtTime);fill('cal-f',APERTURES,8,fmtF);fill('cal-iso',ISO,100,x=>String(x));
   let stream=null, loop=null, facing='environment', last=null,calibration=null,lastOut=null;
   // La prima lettura video fissa SOLO un riferimento tonale relativo.
+  let zoom=1;
+  const zoomSlider=$('zoom-range');
+  const zoomButtons=[...document.querySelectorAll('[data-zoom]')];
+  function updateZoom(zoomValue){
+    zoom=clamp(Number(zoomValue)||1,1,4);
+    zoomSlider.value=String(zoom);
+    $('zoom-value').textContent=zoom.toLocaleString('it-IT',{maximumFractionDigits:1})+'×';
+    $('camera').style.transform='scale('+zoom+')';
+    zoomButtons.forEach(button=>button.classList.toggle('selected',Math.abs(Number(button.dataset.zoom)-zoom)<0.051));
+    // Cambiando campo visivo, la luminanza varia: azzera il riferimento relativo.
+    baseline=null;
+    last=null;
+    recalculate();
+    if(stream)analyze();
+  }
+  zoomSlider.addEventListener('input',()=>updateZoom(zoomSlider.value));
+  zoomButtons.forEach(button=>button.addEventListener('click',()=>updateZoom(button.dataset.zoom)));
+  function zoomAvailable(active){zoomSlider.disabled=!active;zoomButtons.forEach(button=>button.disabled=!active);}
   let baseline=null, frameCount=0;
   let context=null,canvas=document.createElement('canvas');canvas.width=160;canvas.height=120;
   context=canvas.getContext('2d',{willReadFrequently:true});
@@ -80,7 +98,10 @@
   function analyze(){
     const video=$('camera');if(!stream||video.readyState<2)return;
     try{
-      context.drawImage(video,0,0,canvas.width,canvas.height);const data=context.getImageData(0,0,canvas.width,canvas.height).data;const metering=$('metering').value,bins=new Array(32).fill(0),samples=[];let high=0,low=0,total=0;
+      // Ritaglia il centro del fotogramma nello stesso rapporto mostrato dal video.
+      const vw=video.videoWidth,vh=video.videoHeight;
+      const cropW=vw/zoom,cropH=vh/zoom;
+      context.drawImage(video,(vw-cropW)/2,(vh-cropH)/2,cropW,cropH,0,0,canvas.width,canvas.height);const data=context.getImageData(0,0,canvas.width,canvas.height).data;const metering=$('metering').value,bins=new Array(32).fill(0),samples=[];let high=0,low=0,total=0;
       for(let y=0;y<canvas.height;y+=2){for(let x=0;x<canvas.width;x+=2){let nx=(x-canvas.width/2)/(canvas.width/2),ny=(y-canvas.height/2)/(canvas.height/2),radius=Math.sqrt(nx*nx+ny*ny);if(metering==='center'&&radius>0.52)continue;if(metering==='spot'&&radius>0.15)continue;const i=(y*canvas.width+x)*4;const lum=(.2126*data[i]+.7152*data[i+1]+.0722*data[i+2])/255;samples.push(lum);bins[Math.min(31,Math.floor(lum*32))]++;total++;if(lum>.95)high++;if(lum<.05)low++;}}
       if(!total)return;samples.sort((a,b)=>a-b);const median=samples[Math.floor(samples.length/2)];last={median,high:100*high/total,low:100*low/total};
       if(baseline===null){ baseline=median; frameCount=1; }$('median').textContent=(median*100).toFixed(1)+'%';$('highlights').textContent=last.high.toFixed(1)+'%';$('shadows').textContent=last.low.toFixed(1)+'%';
@@ -88,8 +109,8 @@
     }catch(err){$('camera-status').textContent='Analisi video non disponibile: '+err.message;}
   }
   function cameraStatus(msg){$('camera-status').textContent=msg;}
-  async function startCamera(){if(stream)return;if(!navigator.mediaDevices?.getUserMedia){cameraStatus('Questa pagina non può utilizzare getUserMedia. Aprila direttamente in Safari tramite HTTPS (non come file locale o WebView Scriptable).');return;}$('start-camera').disabled=true;cameraStatus('Richiesta autorizzazione videocamera...');try{stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720}}});const video=$('camera');video.srcObject=stream;await video.play();$('camera-placeholder').hidden=true;$('camera-pill').textContent='LIVE';$('camera-pill').classList.add('active');$('camera-label').textContent='Video live · nessun salvataggio';$('stop-camera').disabled=false;$('switch-camera').disabled=false;cameraStatus('Videocamera attiva: nessun fotogramma viene inviato al server.');baseline=null;frameCount=0;loop=window.setInterval(analyze,500);analyze();}catch(e){stopCamera();cameraStatus('Impossibile avviare la fotocamera ('+e.name+'). Apri in Safari con HTTPS, autorizza la fotocamera e verifica che non sia usata da un’altra app.');}finally{$('start-camera').disabled=!!stream;}}
-  function stopCamera(){if(loop){clearInterval(loop);loop=null;}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}$('camera').srcObject=null;$('camera-placeholder').hidden=false;$('camera-pill').textContent='Video spento';$('camera-pill').classList.remove('active');$('camera-label').textContent='Anteprima non attiva';$('start-camera').disabled=false;$('stop-camera').disabled=true;$('switch-camera').disabled=true;last=null;baseline=null;$('median').textContent=$('highlights').textContent=$('shadows').textContent='—';recalculate();}
+  async function startCamera(){if(stream)return;if(!navigator.mediaDevices?.getUserMedia){cameraStatus('Questa pagina non può utilizzare getUserMedia. Aprila direttamente in Safari tramite HTTPS (non come file locale o WebView Scriptable).');return;}$('start-camera').disabled=true;cameraStatus('Richiesta autorizzazione videocamera...');try{stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720}}});const video=$('camera');video.srcObject=stream;await video.play();$('camera-placeholder').hidden=true;$('camera-pill').textContent='LIVE';$('camera-pill').classList.add('active');$('camera-label').textContent='Video live · nessun salvataggio';$('stop-camera').disabled=false;$('switch-camera').disabled=false;zoomAvailable(true);$('camera').style.transform='scale('+zoom+')';cameraStatus('Videocamera attiva: nessun fotogramma viene inviato al server.');baseline=null;frameCount=0;loop=window.setInterval(analyze,500);analyze();}catch(e){stopCamera();cameraStatus('Impossibile avviare la fotocamera ('+e.name+'). Apri in Safari con HTTPS, autorizza la fotocamera e verifica che non sia usata da un’altra app.');}finally{$('start-camera').disabled=!!stream;}}
+  function stopCamera(){if(loop){clearInterval(loop);loop=null;}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}$('camera').srcObject=null;$('camera-placeholder').hidden=false;$('camera-pill').textContent='Video spento';$('camera-pill').classList.remove('active');$('camera-label').textContent='Anteprima non attiva';$('start-camera').disabled=false;$('stop-camera').disabled=true;$('switch-camera').disabled=true;zoomAvailable(false);last=null;baseline=null;$('median').textContent=$('highlights').textContent=$('shadows').textContent='—';recalculate();}
   $('start-camera').addEventListener('click',startCamera);$('stop-camera').addEventListener('click',()=>{stopCamera();cameraStatus('Videocamera disattivata.');});$('switch-camera').addEventListener('click',()=>{facing=facing==='environment'?'user':'environment';stopCamera();startCamera();});
   $('metering').addEventListener('change',()=>{$('roi').className='roi roi-'+$('metering').value;baseline=null;recalculate();});
   $('preset').addEventListener('change',()=>{baseline=last?last.median:null;applyPreset($('preset').value);});
@@ -102,6 +123,6 @@
   $('tab-meter').addEventListener('click',()=>{$('view-meter').hidden=false;$('view-guide').hidden=true;$('tab-meter').classList.add('selected');$('tab-guide').classList.remove('selected');});
   $('tab-guide').addEventListener('click',()=>{$('view-meter').hidden=true;$('view-guide').hidden=false;$('tab-guide').classList.add('selected');$('tab-meter').classList.remove('selected');stopCamera();});
   window.addEventListener('pagehide',stopCamera);
-  $('tone-correction').checked=true;showCalibration();applyPreset('travel');$('roi').className='roi roi-matrix';
+  updateZoom(1);$('tone-correction').checked=true;showCalibration();applyPreset('travel');$('roi').className='roi roi-matrix';
   if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
