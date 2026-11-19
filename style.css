@@ -35,3 +35,39 @@
 .camera-wrap.spot-enabled .roi-spot{box-shadow:0 0 0 2px #000b,0 0 14px #f5cf64;z-index:3}
 .camera-wrap.spot-enabled .camera-label{pointer-events:none}
 #spot-status{min-height:2.5em}
+
+/* V7 - live-first compact design */
+:root{--accent:#f5cf64;--surface:#19232e}
+main{max-width:760px;padding:10px 10px 24px}
+.header{margin:5px 3px 10px}.header h1{font-size:25px}.header .sub{font-size:10px}
+.tabs{position:sticky;top:0;z-index:20;padding:7px 0;background:#0d131bf7;gap:6px;margin-bottom:9px}
+.tabs button{font-size:12px;min-height:39px;padding:9px 5px}
+.card{padding:11px;margin-bottom:10px;border-radius:13px}
+.camera-card{padding:10px}
+.quick-choices{margin-bottom:8px}.compact-title{margin:0 0 4px;letter-spacing:1px;color:#f5cf64;font-size:10px}
+.quick-choices .two{margin-top:0;gap:7px}
+.quick-choices select{min-height:38px;padding:8px 6px}
+.camera-wrap{min-height:185px}.camera-wrap video{min-height:185px;max-height:295px}
+.camera-card>.buttons{margin:0 0 8px}.camera-card>.buttons button{min-height:37px;padding:8px}
+.meter-result{background:#151f2a;border-color:#806b30;margin:8px 0 9px;padding:11px}
+.meter-result .section-heading h2{margin:0 0 8px}
+.readout>div{padding:10px 2px}.readout strong{font-size:clamp(20px,7vw,33px)}
+.meter-result .metric-line{margin:7px 0 5px}
+.meter-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:7px 0}
+.meter-meta span{border-radius:7px;background:#243440;padding:6px 3px;color:#b8cad8;font-size:9px;text-align:center}
+.meter-meta b{display:block;font-size:11px;color:#fff;margin-top:2px;line-height:1.3}
+.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:9px 0 0}
+.result-actions button{margin:0;padding:8px 5px;min-height:37px;font-size:11px}
+.v6-controls{margin-top:6px}.v6-controls button{min-height:39px}
+.zoom-panel{padding:8px;margin-top:9px}.zoom-head{font-size:12px}
+.zoom-presets button{min-height:31px;padding:6px}.zoom-panel input{margin:8px 0}
+.quiet-details,.compact-details{border:1px solid #35485b;border-radius:9px;margin-top:8px;background:#14212c}
+.quiet-details summary,.compact-details summary{padding:10px;font-size:12px;color:#c1d1df;cursor:pointer;font-weight:650}
+.quiet-details .micro,.compact-details .micro{margin:6px 10px 10px}
+.quiet-details .camera-select-panel{margin:0 8px 8px}
+.compact-details .live-detail{margin:4px 8px 8px}
+#live-note{font-size:11px}
+#view-tools .card h2{margin-bottom:8px}
+#view-tools .card{margin-bottom:10px}
+#view-tools .stats{grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:370px){.readout strong{font-size:20px}.meter-meta b{font-size:10px}}

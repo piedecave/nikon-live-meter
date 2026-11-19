@@ -21,6 +21,7 @@
   fill('cal-time',TIMES,1/125,fmtTime);fill('cal-f',APERTURES,8,fmtF);fill('cal-iso',ISO,100,x=>String(x));
   let stream=null, loop=null, facing='environment', last=null,calibration=null,lastOut=null;
   let frozen=false, spotTap=false, spot={x:0.5,y:0.5};
+  let meterHistory=[];
   let spotReference=null; // riferimento tonale precedente per confrontare due punti
   let calibrations={};
   const CAL_KEY='nikon-live-calibration-v6-cameras';
@@ -38,7 +39,7 @@
     // Cambiando campo visivo, la luminanza varia: azzera il riferimento relativo.
     baseline=null;
     last=null;
-    showCalibration();
+    loadCameraCalibration();
     recalculate();
     if(stream){positionSpotMarker();analyze();}
   }
@@ -65,8 +66,9 @@
     if(calibration.metering==='spot' && Math.hypot(calibration.spotX-spot.x,calibration.spotY-spot.y)>.012) return false;
     return true;
   }
+  function calibrationKey(){return cameraKey()+'|'+$('metering').value+'|z'+zoom.toFixed(1)+'|'+($('metering').value==='spot'?(Math.round(spot.x*100)+'_'+Math.round(spot.y*100)):'all');}
   function loadCameraCalibration(){
-    const item=calibrations[cameraKey()];
+    const item=calibrations[calibrationKey()] || calibrations[cameraKey()];
     calibration=item && Number.isFinite(item.ev) && item.ev>-15 && item.ev<25 ? item : null;
     showCalibration();
     recalculate();
@@ -129,6 +131,13 @@
       ? 'Istogramma attivo, ma variazione EV inferiore a 0,04. L’iPhone potrebbe compensare automaticamente la luce.'
       : 'Variazione tonale stimata '+(delta>=0?'+':'')+delta.toFixed(2)+' EV. I valori Nikon sopra cambiano solo al superamento dei passi fotografici; qui sotto sono mostrati i valori continui.';
     $('out-time').textContent=fmtTime(t);$('out-aperture').textContent=fmtF(f);$('out-iso').textContent=String(iso);$('ev-value').textContent=ev.toFixed(2)+(liveActive?' ('+(delta>=0?'+':'')+delta.toFixed(2)+' rel.)':'');$('error-value').textContent=(error>=0?'+':'')+error.toFixed(2)+' EV';$('confidence').textContent=description;$('warnings').textContent=warning.join(' ');
+    $('mini-delta').textContent=(delta>=0?'+':'')+delta.toFixed(2)+' EV';
+    $('mini-median').textContent=last?(last.median*100).toFixed(0)+'%':'—';
+    const steady=meterHistory.length>=5 && Math.max(...meterHistory)-Math.min(...meterHistory)<0.055;
+    const calibrateActive=calibrationMatches();
+    const level=calibrateActive?(steady?'Rif. Nikon stabile':'Rif. Nikon · scena variabile'):(steady?'Scena stabile':'Stima / luce variabile');
+    $('mini-quality').textContent=level;
+    $('calibration-diagnostic').textContent=calibrateActive ? 'Riferimento Nikon attivo su questa fotocamera e configurazione; la correzione live resta indicativa. '+(steady?'Lettura tonale stabile.':'La scena o l’autoesposizione iPhone stanno variando.') : 'Riferimento Nikon non applicato a questa configurazione. L’EV si basa sulla scena presunta; calibra nella stessa area/zoom per un riferimento migliore.';
     $('advice').textContent=PRESETS[$('preset').value].advice+(last&&last.high>8?' Molte aree chiare nel video: controlla le alte luci sulla Nikon.':'')+(last&&last.low>25?' Ombre profonde: evita di affidarti al solo display iPhone.':'');
     const body=$('equivalents');body.replaceChildren();
     for(const aperture of [4,5.6,8,11,16,22]){let rawT=exposureSeconds(ev,aperture,iso,comp),near=closest(TIMES,clamp(rawT,1/16000,30));const tr=document.createElement('tr');if(aperture===f)tr.className='current';for(const value of [fmtF(aperture),fmtTime(near),iso]){const td=document.createElement('td');td.textContent=String(value);tr.append(td);}body.append(tr);}
@@ -155,6 +164,7 @@
       if(!total)return;samples.sort((a,b)=>a-b);const median=samples[Math.floor(samples.length/2)];
       if(frozen){drawHistogram(bins);return;}
       last={median,high:100*high/total,low:100*low/total};
+      meterHistory.push(median);if(meterHistory.length>10)meterHistory.shift();
       if(baseline===null){ baseline=median; frameCount=1; }$('median').textContent=(median*100).toFixed(1)+'%';$('highlights').textContent=last.high.toFixed(1)+'%';$('shadows').textContent=last.low.toFixed(1)+'%';
       drawHistogram(bins);recalculate();
     }catch(err){$('camera-status').textContent='Analisi video non disponibile: '+err.message;}
@@ -205,7 +215,7 @@
     $('camera-placeholder').hidden=false;
     $('camera-pill').textContent='Video spento';$('camera-pill').classList.remove('active');
     $('camera-label').textContent='Anteprima non attiva';
-    zoomAvailable(false);last=null;baseline=null;
+    zoomAvailable(false);last=null;baseline=null;meterHistory=[];
     setFrozen(false);calibration=null;showCalibration();
     $('median').textContent=$('highlights').textContent=$('shadows').textContent='—';
     cameraBusyUI(false);recalculate();
@@ -231,7 +241,7 @@
       $('camera-pill').classList.add('active');
       $('camera-label').textContent=stream.getVideoTracks()[0]?.label||'Video live · nessun salvataggio';
       zoomAvailable(true);$('freeze-reading').disabled=false;video.style.transform='scale('+zoom+')';
-      baseline=null;last=null;frameCount=0;
+      baseline=null;last=null;meterHistory=[];frameCount=0;
       loop=window.setInterval(analyze,500);updateROI();analyze();
       cameraStatus('Fotocamera attiva. Nessun video viene inviato al server.');
       await refreshCameraDevices();
@@ -300,7 +310,7 @@
       $('spot-status').textContent='Spot disattivato. Puoi riattivarlo e toccare la scena.';
       $('metering').value='matrix';
     }
-    updateROI();showCalibration();
+    updateROI();loadCameraCalibration();
     if(stream)analyze();
   });
   function handleSpotTouch(event){
@@ -326,7 +336,7 @@
     // Non azzerare il riferimento relativo: in caso contrario il cambio di punto
     // viene immediatamente annullato dal nuovo fotogramma di riferimento.
     $('spot-status').textContent='Spot aggiornato: '+Math.round(spot.x*100)+'% orizzontale, '+Math.round(spot.y*100)+'% verticale. Tocca altrove per confrontare la luce.';
-    showCalibration();if(stream)analyze();
+    loadCameraCalibration();if(stream)analyze();
   }
   // pointerup supporta il tocco iOS e il mouse; click è il fallback per browser più vecchi.
   let lastPointerAt=0;
@@ -358,7 +368,7 @@
     $('spot-tap').classList.toggle('on',spotTap);
     // Il cambio modalità conserva la lettura precedente per confrontare subito le aree.
     if(last && baseline===null)baseline=last.median;
-    updateROI();showCalibration();recalculate();if(stream)analyze();
+    updateROI();loadCameraCalibration();recalculate();if(stream)analyze();
   });
   $('preset').addEventListener('change',()=>{baseline=last?last.median:null;applyPreset($('preset').value);});
   for(const id of ['aperture','iso','comp','target','iso-max','tone-correction'])$(id).addEventListener('change',recalculate);
@@ -370,17 +380,25 @@
     const ev=Math.log2(f*f/t)-Math.log2(iso/100);
     if(!Number.isFinite(ev)) return;
     calibration={ev,median:last.median,zoom,metering:$('metering').value,spotX:spot.x,spotY:spot.y};
-    calibrations[cameraKey()]=calibration;
+    calibrations[calibrationKey()]=calibration;
     const saved=saveCalibrations();showCalibration();recalculate();
     if(!saved)$('calibration-status').textContent+=' Attenzione: Safari non ha consentito il salvataggio permanente.';
   });
   $('reset-calibration').addEventListener('click',()=>{
-    delete calibrations[cameraKey()];calibration=null;saveCalibrations();showCalibration();recalculate();
+    delete calibrations[calibrationKey()];delete calibrations[cameraKey()];calibration=null;saveCalibrations();showCalibration();recalculate();
   });
   $('copy-settings').addEventListener('click',async()=>{if(!lastOut)return;const o=lastOut;const val=`Nikon Z6 III | M | ${fmtTime(o.shutterSeconds)} | ${fmtF(o.aperture)} | ISO ${o.iso} | EV100 ${o.ev.toFixed(2)} | Comp. ${o.comp.toFixed(2)} EV | ${o.source}`;try{await navigator.clipboard.writeText(val);$('copy-feedback').textContent='Valori copiati negli appunti.';}catch(e){$('copy-feedback').textContent='Copia automatica non disponibile: seleziona manualmente i valori mostrati.';}});
   $('send-scriptable').addEventListener('click',()=>{if(!lastOut)return;const o=lastOut;const query=new URLSearchParams({ev:o.ev.toFixed(3),iso:String(o.iso),aperture:String(o.aperture),shutter:String(o.shutterSeconds)});window.location.href='scriptable:///run/Nikon%20Live%20Import?'+query.toString();});
-  $('tab-meter').addEventListener('click',()=>{$('view-meter').hidden=false;$('view-guide').hidden=true;$('tab-meter').classList.add('selected');$('tab-guide').classList.remove('selected');});
-  $('tab-guide').addEventListener('click',()=>{$('view-meter').hidden=true;$('view-guide').hidden=false;$('tab-guide').classList.add('selected');$('tab-meter').classList.remove('selected');stopCamera();});
+  function showPage(page){
+    for(const name of ['meter','tools','guide']){
+      $('view-'+name).hidden=name!==page;
+      $('tab-'+name).classList.toggle('selected',name===page);
+      $('tab-'+name).setAttribute('aria-pressed',String(name===page));
+    }
+    if(page==='guide') stopCamera();
+    window.scrollTo({top:0,behavior:'instant'});
+  }
+  for(const name of ['meter','tools','guide'])$('tab-'+name).addEventListener('click',()=>showPage(name));
   window.addEventListener('pagehide',stopCamera);
   updateZoom(1);$('tone-correction').checked=true;showCalibration();applyPreset('travel');$('roi').className='roi roi-matrix';
   if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
