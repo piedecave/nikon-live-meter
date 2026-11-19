@@ -55,7 +55,23 @@
     let clipped=clamp(raw,TIMES[TIMES.length-1],TIMES[0]);const t=closest(TIMES,clipped);
     if(raw>30||raw<1/16000)warning.push('Esposizione calcolata fuori intervallo 30 s–1/16000 s; il valore mostrato è limitato.');
     const error=Math.log2(t/raw);
-    $('out-time').textContent=fmtTime(t);$('out-aperture').textContent=fmtF(f);$('out-iso').textContent=String(iso);$('ev-value').textContent=ev.toFixed(2)+(last&&$('tone-correction').checked?' ('+(delta>=0?'+':'')+delta.toFixed(2)+' rel.)':'');$('error-value').textContent=(error>=0?'+':'')+error.toFixed(2)+' EV';$('confidence').textContent=description;$('warnings').textContent=warning.join(' ');
+    // Mostra i valori continui, oltre a quelli Nikon arrotondati per passi.
+    const fixedIsoSeconds=exposureSeconds(ev,f,initialIso,comp);
+    const theoreticalIso=minTime ? initialIso*fixedIsoSeconds/minTime : initialIso;
+    const formatExactTime=seconds=>seconds>=1?seconds.toFixed(2)+' s':
+      '1/'+(1/seconds).toFixed(1)+' s';
+    $('continuous-time').textContent=formatExactTime(fixedIsoSeconds);
+    $('continuous-iso').textContent=minTime ? 'ISO '+Math.round(theoreticalIso) : 'Nessun tempo minimo';
+    const liveActive=Boolean(last && $('tone-correction').checked);
+    const canChange=liveActive && Math.abs(delta)>0.035;
+    $('live-explanation').textContent=!last
+      ? 'Anteprima spenta: vengono usati soltanto i parametri della scena.'
+      : !$('tone-correction').checked
+      ? 'La correzione tonale è disattivata: attivala nella sezione Calibrazione.'
+      : !canChange
+      ? 'Istogramma attivo, ma variazione EV inferiore a 0,04. L’iPhone potrebbe compensare automaticamente la luce.'
+      : 'Variazione tonale stimata '+(delta>=0?'+':'')+delta.toFixed(2)+' EV. I valori Nikon sopra cambiano solo al superamento dei passi fotografici; qui sotto sono mostrati i valori continui.';
+    $('out-time').textContent=fmtTime(t);$('out-aperture').textContent=fmtF(f);$('out-iso').textContent=String(iso);$('ev-value').textContent=ev.toFixed(2)+(liveActive?' ('+(delta>=0?'+':'')+delta.toFixed(2)+' rel.)':'');$('error-value').textContent=(error>=0?'+':'')+error.toFixed(2)+' EV';$('confidence').textContent=description;$('warnings').textContent=warning.join(' ');
     $('advice').textContent=PRESETS[$('preset').value].advice+(last&&last.high>8?' Molte aree chiare nel video: controlla le alte luci sulla Nikon.':'')+(last&&last.low>25?' Ombre profonde: evita di affidarti al solo display iPhone.':'');
     const body=$('equivalents');body.replaceChildren();
     for(const aperture of [4,5.6,8,11,16,22]){let rawT=exposureSeconds(ev,aperture,iso,comp),near=closest(TIMES,clamp(rawT,1/16000,30));const tr=document.createElement('tr');if(aperture===f)tr.className='current';for(const value of [fmtF(aperture),fmtTime(near),iso]){const td=document.createElement('td');td.textContent=String(value);tr.append(td);}body.append(tr);}
