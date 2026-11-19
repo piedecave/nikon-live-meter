@@ -20,6 +20,7 @@
   fill('aperture',APERTURES,5.6,fmtF);fill('iso',ISO,200,x=>'ISO '+x);fill('iso-max',ISO,12800,x=>String(x));
   fill('cal-time',TIMES,1/125,fmtTime);fill('cal-f',APERTURES,8,fmtF);fill('cal-iso',ISO,100,x=>String(x));
   let stream=null, loop=null, facing='environment', last=null,calibration=null,lastOut=null;
+  let selectedCameraId='',cameraBusy=false;
   // La prima lettura video fissa SOLO un riferimento tonale relativo.
   let zoom=1;
   const zoomSlider=$('zoom-range');
@@ -109,9 +110,111 @@
     }catch(err){$('camera-status').textContent='Analisi video non disponibile: '+err.message;}
   }
   function cameraStatus(msg){$('camera-status').textContent=msg;}
-  async function startCamera(){if(stream)return;if(!navigator.mediaDevices?.getUserMedia){cameraStatus('Questa pagina non può utilizzare getUserMedia. Aprila direttamente in Safari tramite HTTPS (non come file locale o WebView Scriptable).');return;}$('start-camera').disabled=true;cameraStatus('Richiesta autorizzazione videocamera...');try{stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720}}});const video=$('camera');video.srcObject=stream;await video.play();$('camera-placeholder').hidden=true;$('camera-pill').textContent='LIVE';$('camera-pill').classList.add('active');$('camera-label').textContent='Video live · nessun salvataggio';$('stop-camera').disabled=false;$('switch-camera').disabled=false;zoomAvailable(true);$('camera').style.transform='scale('+zoom+')';cameraStatus('Videocamera attiva: nessun fotogramma viene inviato al server.');baseline=null;frameCount=0;loop=window.setInterval(analyze,500);analyze();}catch(e){stopCamera();cameraStatus('Impossibile avviare la fotocamera ('+e.name+'). Apri in Safari con HTTPS, autorizza la fotocamera e verifica che non sia usata da un’altra app.');}finally{$('start-camera').disabled=!!stream;}}
-  function stopCamera(){if(loop){clearInterval(loop);loop=null;}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}$('camera').srcObject=null;$('camera-placeholder').hidden=false;$('camera-pill').textContent='Video spento';$('camera-pill').classList.remove('active');$('camera-label').textContent='Anteprima non attiva';$('start-camera').disabled=false;$('stop-camera').disabled=true;$('switch-camera').disabled=true;zoomAvailable(false);last=null;baseline=null;$('median').textContent=$('highlights').textContent=$('shadows').textContent='—';recalculate();}
-  $('start-camera').addEventListener('click',startCamera);$('stop-camera').addEventListener('click',()=>{stopCamera();cameraStatus('Videocamera disattivata.');});$('switch-camera').addEventListener('click',()=>{facing=facing==='environment'?'user':'environment';stopCamera();startCamera();});
+  function cameraBusyUI(busy){
+    cameraBusy=busy;
+    $('start-camera').disabled=busy||!!stream;
+    $('stop-camera').disabled=busy||!stream;
+    $('switch-camera').disabled=busy||!stream;
+    $('refresh-cameras').disabled=busy||!stream||!navigator.mediaDevices?.enumerateDevices;
+    $('camera-device').disabled=busy||!stream||$('camera-device').options.length<2;
+  }
+  function cameraLabel(d,i){
+    // Mostriamo SOLO il nome riportato da Safari: non deduciamo falsi sensori fisici.
+    return d.label?.trim()||('Sorgente video '+(i+1));
+  }
+  async function refreshCameraDevices(){
+    const sel=$('camera-device');
+    if(!navigator.mediaDevices?.enumerateDevices){
+      $('device-status').textContent='Questo Safari non consente di elencare le sorgenti video.';
+      cameraBusyUI(cameraBusy);return;
+    }
+    try{
+      const devices=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput');
+      const actual=stream?.getVideoTracks()[0]?.getSettings()?.deviceId||selectedCameraId;
+      sel.replaceChildren();
+      if(!devices.length){
+        sel.add(new Option('Nessuna fotocamera elencata',''));
+        $('device-status').textContent='Nessuna fotocamera alternativa visibile. Prova Aggiorna oppure Inverti.';
+      }else{
+        devices.forEach((device,i)=>sel.add(new Option(cameraLabel(device,i),device.deviceId||'')));
+        let selected=devices.find(d=>d.deviceId&&d.deviceId===actual);
+        if(!selected&&devices.length===1)selected=devices[0];
+        if(selected)sel.value=selected.deviceId;
+        else sel.selectedIndex=0;
+        $('device-status').textContent=devices.length+' sorgent'+(devices.length===1?'e video disponibile':'i video disponibili')+'. Seleziona una voce per cambiare inquadratura; Safari potrebbe raggruppare più lenti.';
+      }
+      cameraBusyUI(cameraBusy);
+    }catch(e){
+      $('device-status').textContent='Impossibile elencare le fotocamere: '+e.message;
+    }
+  }
+  function stopCamera(){
+    if(loop){clearInterval(loop);loop=null;}
+    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+    const video=$('camera');video.pause();video.srcObject=null;
+    $('camera-placeholder').hidden=false;
+    $('camera-pill').textContent='Video spento';$('camera-pill').classList.remove('active');
+    $('camera-label').textContent='Anteprima non attiva';
+    zoomAvailable(false);last=null;baseline=null;
+    $('median').textContent=$('highlights').textContent=$('shadows').textContent='—';
+    cameraBusyUI(false);recalculate();
+  }
+  async function startCamera(deviceId=''){
+    if(cameraBusy||stream)return;
+    if(!navigator.mediaDevices?.getUserMedia){
+      cameraStatus('Apri la Web App direttamente in Safari tramite HTTPS: getUserMedia non è disponibile.');return;
+    }
+    cameraBusyUI(true);
+    cameraStatus('Richiesta autorizzazione videocamera...');
+    try{
+      const constraints=deviceId
+        ? {deviceId:{exact:deviceId},width:{ideal:1280},height:{ideal:720}}
+        : {facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720}};
+      const newStream=await navigator.mediaDevices.getUserMedia({audio:false,video:constraints});
+      stream=newStream;
+      const video=$('camera');video.srcObject=stream;
+      await video.play();
+      selectedCameraId=stream.getVideoTracks()[0]?.getSettings()?.deviceId||deviceId||'';
+      $('camera-placeholder').hidden=true;$('camera-pill').textContent='LIVE';
+      $('camera-pill').classList.add('active');
+      $('camera-label').textContent=stream.getVideoTracks()[0]?.label||'Video live · nessun salvataggio';
+      zoomAvailable(true);video.style.transform='scale('+zoom+')';
+      baseline=null;last=null;frameCount=0;
+      loop=window.setInterval(analyze,500);analyze();
+      cameraStatus('Fotocamera attiva. Nessun video viene inviato al server.');
+      await refreshCameraDevices();
+    }catch(e){
+      stopCamera();
+      let msg='Impossibile avviare la fotocamera ('+e.name+'). ';
+      if(deviceId)msg+='La sorgente scelta potrebbe non essere disponibile: prova Aggiorna, oppure Inverti. ';
+      else msg+='Controlla il permesso fotocamera e il collegamento HTTPS. ';
+      cameraStatus(msg);
+    }finally{cameraBusyUI(false);}
+  }
+  async function switchToDevice(id){
+    if(!id||cameraBusy||!stream)return;
+    const oldId=stream.getVideoTracks()[0]?.getSettings()?.deviceId||selectedCameraId;
+    if(id===oldId)return;
+    // iOS spesso consente una sola sorgente video contemporaneamente.
+    stopCamera();selectedCameraId=id;
+    await startCamera(id);
+    if(!stream){
+      cameraStatus('Sorgente non disponibile. Prova ad avviare la fotocamera predefinita.');
+      selectedCameraId='';
+    }
+  }
+  $('start-camera').addEventListener('click',()=>startCamera());
+  $('stop-camera').addEventListener('click',()=>{stopCamera();cameraStatus('Videocamera disattivata.');});
+  $('refresh-cameras').addEventListener('click',refreshCameraDevices);
+  $('camera-device').addEventListener('change',event=>switchToDevice(event.target.value));
+  $('switch-camera').addEventListener('click',async()=>{
+    if(cameraBusy)return;
+    facing=facing==='environment'?'user':'environment';
+    stopCamera();selectedCameraId='';await startCamera();
+  });
+  navigator.mediaDevices?.addEventListener?.('devicechange',()=>{
+    if(stream&&!cameraBusy)refreshCameraDevices();
+  });
   $('metering').addEventListener('change',()=>{$('roi').className='roi roi-'+$('metering').value;baseline=null;recalculate();});
   $('preset').addEventListener('change',()=>{baseline=last?last.median:null;applyPreset($('preset').value);});
   for(const id of ['aperture','iso','comp','target','iso-max','tone-correction'])$(id).addEventListener('change',recalculate);

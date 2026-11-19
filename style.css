@@ -11,3 +11,11 @@
 .zoom-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
 .zoom-presets button{padding:8px 5px;min-height:36px}
 .zoom-presets button.selected{background:#f5cf64;color:#141820;border-color:#f5cf64}
+
+/* Selezione sorgenti video Safari */
+.camera-select-panel{margin-top:11px;padding:10px;border:1px solid #455b6b;background:#121e28;border-radius:11px}
+.camera-select-panel>label{font-size:12px;font-weight:700;color:#f0f5fa}
+.camera-select-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;margin-top:6px}
+.camera-select-row select{margin-top:0;min-width:0}
+.camera-select-row button{white-space:nowrap}
+.camera-select-row select:disabled{opacity:.55}

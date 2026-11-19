@@ -15,10 +15,17 @@
 </head>
 <body>
 <main>
-<header class="header"><div><p class="overline">ASSISTENTE FOTOGRAFICO · iPHONE</p><h1>NIKON <span>Z6 III</span></h1><p class="sub">Live Meter V4 Zoom · NIKKOR Z 24–120mm f/4 S</p></div><span id="camera-pill" class="pill">Video spento</span></header>
+<header class="header"><div><p class="overline">ASSISTENTE FOTOGRAFICO · iPHONE</p><h1>NIKON <span>Z6 III</span></h1><p class="sub">Live Meter V5 Fotocamere · NIKKOR Z 24–120mm f/4 S</p></div><span id="camera-pill" class="pill">Video spento</span></header>
 <nav class="tabs" aria-label="Navigazione"><button id="tab-meter" class="selected" aria-pressed="true">Esposimetro</button><button id="tab-guide" aria-pressed="false">Ricette e U1–U3</button></nav>
 <section id="view-meter">
 <section class="card camera-card"><div class="camera-wrap"><video id="camera" autoplay playsinline muted></video><div class="camera-placeholder" id="camera-placeholder"><span class="camera-glyph">◎</span><strong>Anteprima fotocamera</strong><small>Attiva la videocamera posteriore per visualizzare la scena senza scattare foto</small></div><div id="roi" class="roi roi-matrix" aria-hidden="true"><span></span></div><div class="camera-label" id="camera-label">Anteprima non attiva</div></div>
+<div class="camera-select-panel" aria-label="Scelta fotocamera iPhone">
+  <label for="camera-device">Fotocamera iPhone</label>
+  <div class="camera-select-row"><select id="camera-device" disabled aria-label="Seleziona una fotocamera">
+    <option value="">Avvia per individuare le fotocamere</option>
+  </select><button id="refresh-cameras" type="button" disabled>Aggiorna</button></div>
+  <p id="device-status" class="micro">Dopo il permesso video appariranno le fotocamere che Safari rende selezionabili. Alcuni iPhone mostrano sorgenti virtuali anziché ogni singola lente.</p>
+</div>
 <div class="zoom-panel" aria-label="Zoom fotocamera">
   <div class="zoom-head"><strong>Zoom inquadratura</strong><output id="zoom-value" for="zoom-range">1,0×</output></div>
   <input id="zoom-range" type="range" min="1" max="4" step="0.1" value="1" disabled aria-label="Livello di zoom">

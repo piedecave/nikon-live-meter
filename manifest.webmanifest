@@ -1,7 +1,7 @@
 {
   "name": "Nikon Z6 III · Live Meter",
   "short_name": "Nikon Live",
-  "description": "Assistente fotografico per Nikon Z6 III con fotocamera live, istogramma e suggerimenti esposizione",
+  "description": "Assistente fotografico per Nikon Z6 III con scelta fotocamere, zoom e video live, istogramma e suggerimenti esposizione",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
