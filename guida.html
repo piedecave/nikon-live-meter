@@ -1,0 +1,1112 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f3ea">
+<title>Esposizione · Nikon Z6 III</title>
+<style>
+:root {
+  color-scheme: light;
+  --paper: #f7f3ea;
+  --ink: #171716;
+  --lime: #def66a;
+  --muted: #59554f;
+  font: 16px/1.4 system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 560px; margin: auto; padding: 22px 14px 34px; }
+header { display: flex; align-items: center; gap: 13px; margin: 0 4px 20px; }
+header svg { width: 38px; height: 38px; flex: none; }
+h1, h2, p, dl, dd { margin: 0; }
+h1 { font-size: 2rem; line-height: 1.1; letter-spacing: -.055em; font-weight: 850; }
+h2 { font-size: 1.2rem; line-height: 1.2; font-weight: 800; letter-spacing: -.03em; }
+header p { font-size: .91rem; margin-top: 4px; }
+main > section:first-of-type { padding: 0 4px; }
+.genres, .advanced { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.genres, .segments, .panel .three { margin-top: 9px; }
+button, select, summary { font: inherit; color: inherit; }
+button, select { min-height: 44px; }
+button { cursor: pointer; font-weight: 750; border: 1.5px solid var(--ink); background: #fbfaf7; border-radius: 8px; }
+button[aria-pressed="true"] { background: var(--lime); }
+button:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #6d810d; outline-offset: 2px; }
+form { display: grid; gap: 11px; margin: 13px 0; }
+.panel, details { background: #fff; border: 1.5px solid var(--ink); border-radius: 14px; }
+.panel, .result { padding: 12px 13px; }
+.row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 3px 8px; }
+.row span, label, .hint { color: var(--muted); font-size: .82rem; }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+label { display: block; }
+select { display: block; width: 100%; margin-top: 3px; padding: 4px 5px; border: 1.5px solid var(--ink); border-radius: 7px; background: #fbfaf7; color: var(--ink); font-size: 1rem; font-weight: 700; }
+.hint { margin-top: 7px; }
+.segments { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; border: 1.5px solid var(--ink); border-radius: 8px; overflow: hidden; }
+.segments button { border: 0; border-radius: 0; padding: 4px; font-size: .86rem; }
+.segments button + button { border-left: 1.5px solid var(--ink); }
+.segments button:focus-visible { outline-offset: -4px; }
+.result { border-radius: 14px; background: #1d1d1d; color: white; }
+.result dl { margin-top: 10px; gap: 0; }
+.result dl div { display: flex; flex-direction: column-reverse; align-items: center; text-align: center; }
+.result dl div + div { border-left: 1px solid #858585; }
+.result dd { font-weight: 850; line-height: 1.16; letter-spacing: -.05em; font-size: clamp(1.35rem, 6.3vw, 2.5rem); color: var(--lime); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.result dt { font-size: .77rem; color: #e4e4e4; }
+#warning { margin-top: 10px; font-size: .87rem; color: #f2f5d9; }
+summary { min-height: 44px; padding: 9px 13px; font-weight: 750; cursor: pointer; }
+.advanced { padding: 0 13px 13px; gap: 9px; }
+.explanation { padding: 0 4px; }
+.explanation h2 { margin-bottom: 5px; }
+.explanation p { font-size: .92rem; }
+.explanation .hint { font-size: .82rem; }
+.mode { margin: 0 0 13px; }
+#recipes > section { margin-top: 11px; }
+#recipes > .hint { margin: 11px 4px; }
+#recipe-menu { display: grid; gap: 8px; margin-top: 10px; }
+#recipe-menu dt { color: var(--muted); font-size: .82rem; }
+#recipe-menu dd { font-weight: 650; }
+.technique-filters { display: grid; gap: 9px; }
+.technique-card { margin-top: 11px; }
+.technique-card dl { display: grid; gap: 10px; margin-top: 12px; }
+.technique-card dt { font-weight: 750; }
+.technique-card dd { font-size: .94rem; }
+.technique-card .hint { margin-top: 13px; }
+.mode { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row; }
+.mode button:nth-child(3) { border-left: 0; }
+.mode button:nth-child(n+3) { border-top: 1.5px solid var(--ink); }
+.camera-menu dt { color: var(--muted); font-size: .82rem; }
+#preset-after { margin-top: 12px; padding: 9px; background: var(--paper); border-radius: 6px; }
+#presets ol { padding-left: 22px; }
+#presets li + li { margin-top: 5px; }
+input, textarea { font: inherit; display: block; width: 100%; color: var(--ink); padding: 8px; border: 1.5px solid var(--ink); border-radius: 8px; background: #fff; }
+input { min-height: 44px; }
+.quick-list { display: grid; gap: 6px; }
+.quick-list:empty { display: none; }
+.quick-list button { text-align: left; padding: 6px 10px; }
+#favorite-list { padding: 0 9px 9px; }
+#favorite-technique, #favorite-recipe { margin-top: 8px; padding: 5px 9px; }
+#basket-speeds { margin-top: 8px; }
+#basket-speeds[hidden] { display: none; }
+#recipe-menu { padding: 0 13px 12px; }
+#gym-form { margin: 0; }
+#gym-list article + article { border-top: 1px solid var(--muted); padding-top: 8px; }
+#gym-list button { margin: 6px 6px 0 0; }
+#remember-preset { padding: 5px 9px; }
+
+/* Esposimetro V2 */
+.meter-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px }
+.meter-grid label { min-width:0 }
+.meter-buttons { display:flex;flex-wrap:wrap;gap:8px;margin-top:10px }
+.meter-buttons button { flex:1; padding:8px }
+.meter-preview { max-width:100%;max-height:240px;object-fit:contain;display:none;margin:9px auto;border-radius:9px }
+#meter-equivalents { width:100%;font-size:.84rem;border-collapse:collapse;margin-top:8px }
+#meter-equivalents th,#meter-equivalents td { padding:7px 4px;border-bottom:1px solid #ddd;text-align:left }
+#meter-value { font-size:1.25rem;font-weight:800 }
+#meter-status { margin-top:9px }
+.meter-camera-button { display:flex;align-items:center;justify-content:center;cursor:pointer;min-height:44px;flex:1;padding:8px;border:1.5px solid var(--ink);border-radius:8px;background:#fbfaf7;font-weight:750;text-align:center; }
+</style>
+</head>
+<body>
+<main>
+<header>
+<svg aria-hidden="true" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="24" cy="24" r="21"/><path d="m16 5 17 15M36 7l-5 22M45 24l-21 8M35 42 16 28M14 42l4-23M3 22l22-8"/></svg>
+<div><h1>Esposizione</h1><p>Nikon Z6 III · 24–120 mm f/4 S</p></div>
+</header>
+<section class="panel technique-filters" aria-label="Cerca e preferiti">
+<label>Cerca ricette e tecniche<input id="library-search" type="search" placeholder="Es. mosso, ritratto, ISO"></label>
+<div id="library-results" class="quick-list"></div>
+<details id="favorites"><summary>Preferiti</summary><div id="favorite-list" class="quick-list"></div></details>
+<p id="personal-status" class="hint" role="status" hidden></p>
+</section>
+<nav class="segments mode" aria-label="Modalità">
+<button type="button" id="show-recipes" aria-pressed="true" aria-controls="recipes">Ricette</button>
+<button type="button" id="show-techniques" aria-pressed="false" aria-controls="techniques">Tecniche</button>
+<button type="button" id="show-presets" aria-pressed="false" aria-controls="presets">U1 · U2 · U3</button>
+<button type="button" id="show-calculator" aria-pressed="false" aria-controls="calculator-view">Calcola da lettura</button>
+<button type="button" id="show-meter" aria-pressed="false" aria-controls="meter-view">Esposimetro V2</button>
+</nav>
+<section id="recipes" aria-label="Ricette fotografiche">
+<div class="panel">
+<label>Tipo di fotografia<select id="recipe-choice"></select></label>
+<p class="hint" id="recipe-scene"></p>
+<button id="favorite-recipe" type="button">Aggiungi ai preferiti</button>
+</div>
+<section class="result" aria-live="polite">
+<h2>Impostazioni di partenza</h2>
+<dl class="three">
+<div><dt>Tempo</dt><dd id="recipe-time"></dd></div>
+<div><dt>Diaframma</dt><dd id="recipe-aperture"></dd></div>
+<div><dt>ISO</dt><dd id="recipe-iso"></dd></div>
+</dl>
+</section>
+<section class="panel technique-card">
+<h2>Scatto rapido</h2>
+<p id="quick-focus" class="hint"></p>
+<div id="basket-speeds" class="segments"></div>
+</section>
+<details class="technique-card"><summary>Dove trovarlo sulla Nikon</summary>
+<dl id="recipe-menu"></dl>
+</details>
+<details class="technique-card"><summary>Correggi dopo lo scatto</summary>
+<div class="panel"><label>Problema<select id="shot-problem"></select></label>
+<p id="shot-advice" class="hint" aria-live="polite"></p></div>
+</details>
+<details id="gym-panel" class="technique-card"><summary>Ricette per palestra</summary>
+<form id="gym-form" class="panel technique-filters">
+<label>Nome palestra<input id="gym-name" required maxlength="80"></label>
+<label>Tempo preferito<select id="gym-time"></select></label>
+<label>ISO osservati<input id="gym-iso" type="number" inputmode="numeric" min="100" max="64000" required></label>
+<label>Note<textarea id="gym-notes" rows="2" maxlength="240"></textarea></label>
+<button type="submit">Salva ricetta</button>
+<button id="gym-cancel" type="button" hidden>Annulla modifica</button>
+</form>
+<div id="gym-list" class="panel quick-list"></div>
+</details>
+<p class="hint" id="recipe-tip"></p>
+</section>
+<section id="techniques" aria-label="Schede di tecnica fotografica" hidden>
+<div class="panel technique-filters">
+<label>Categoria<select id="technique-category"></select></label>
+<label>Scheda<select id="technique-choice"></select></label>
+</div>
+<article class="panel technique-card" aria-live="polite">
+<h2 id="technique-title"></h2>
+<button id="favorite-technique" type="button">Aggiungi ai preferiti</button>
+<dl>
+<div><dt>Sul campo</dt><dd id="technique-method"></dd></div>
+<div><dt>Impostazioni di partenza</dt><dd id="technique-setup"></dd></div>
+<div><dt>Sulla Nikon Z6 III</dt><dd id="technique-camera"></dd></div>
+<div><dt>Dopo lo scatto</dt><dd id="technique-check"></dd></div>
+</dl>
+<p class="hint" id="technique-source"></p>
+<a id="technique-source-link" class="hint" target="_blank" rel="noopener noreferrer" hidden>Apri la fonte online</a>
+</article>
+</section>
+<section id="presets" aria-label="Profili utente Nikon" hidden>
+<div class="panel technique-filters">
+<h2>Nikon Z6 III</h2>
+<div id="slot-reminders" class="quick-list"></div>
+<label>Tipo di fotografia<select id="preset-category"></select></label>
+<label>Tecnica<select id="preset-choice"></select></label>
+<label>Posizione sulla ghiera<select id="preset-slot"></select></label>
+<p class="hint">Esempio per tre posizioni: U1 basket, U2 ritratto, U3 paesaggio. Puoi scegliere qualsiasi posizione.</p>
+</div>
+<article class="panel technique-card" aria-live="polite">
+<h2 id="preset-title"></h2>
+<p id="preset-exposure" class="hint"></p>
+<dl class="camera-menu" id="preset-menu"></dl>
+<p id="preset-after" hidden></p>
+</article>
+<section class="panel technique-card">
+<h2>Salva sulla Nikon</h2>
+<ol>
+<li>In modalità foto, imposta la ghiera e le voci della scheda.</li>
+<li>Premi MENU → B Menu impostazioni (chiave inglese) → Salva impostazioni utente. Premi la freccia destra (2).</li>
+<li>Seleziona <strong id="preset-save"></strong>, premi la freccia destra (2), poi seleziona <strong>Salva impostazioni</strong> e premi <strong>J</strong>.</li>
+<li>Ruota la ghiera sulla posizione scelta e controlla i valori nel mirino.</li>
+</ol>
+<button id="remember-preset" type="button">Segna come salvato</button>
+<p class="hint">Premi il pulsante dopo aver salvato sulla Nikon. Il promemoria viene aggiornato a mano.</p>
+<p class="hint">Il salvataggio sostituisce le impostazioni già presenti nella posizione scelta.</p>
+</section>
+</section>
+
+<section id="meter-view" aria-label="Esposimetro fotografico V2" hidden>
+<section class="panel technique-card">
+<h2>Esposimetro · EV stimato</h2>
+<p class="hint">Seleziona la luminosità della scena: la stima EV100 è indicativa, non una lettura diretta del sensore dell’iPhone.</p>
+<div class="meter-grid" style="margin-top:12px">
+<label>Tipo di scena<select id="meter-scene">
+<option value="16">Neve o spiaggia al sole (EV 16)</option>
+<option value="15" selected>Sole pieno (EV 15)</option>
+<option value="14">Sole velato (EV 14)</option>
+<option value="13">Nuvoloso luminoso (EV 13)</option>
+<option value="12">Cielo coperto (EV 12)</option>
+<option value="11">Ombra esterna (EV 11)</option>
+<option value="9">Interno luminoso (EV 9)</option>
+<option value="7">Interno normale (EV 7)</option>
+<option value="6">Palestra / basket indoor (EV 6)</option>
+<option value="5">Interno poco illuminato (EV 5)</option>
+<option value="3">Strada illuminata di notte (EV 3)</option>
+<option value="0">Paesaggio notturno (EV 0)</option>
+<option value="-3">Scena molto buia (EV −3)</option>
+</select></label>
+<label>EV100 personalizzato<select id="meter-ev-adjust"><option value="0">Scena selezionata</option><option value="-2">−2 EV</option><option value="-1">−1 EV</option><option value="-0.3333333">−1/3 EV</option><option value="0.3333333">+1/3 EV</option><option value="1">+1 EV</option><option value="2">+2 EV</option></select></label>
+<label>ISO Nikon<select id="meter-iso"></select></label>
+<label>Diaframma Nikon<select id="meter-aperture"></select></label>
+<label>Compensazione<select id="meter-comp"></select></label>
+<label>Priorità di scatto<select id="meter-priority"><option value="normal">Esposizione corretta</option><option value="fast">Movimento rapido (1/800 s)</option><option value="night">Treppiede / notte</option></select></label>
+</div>
+</section>
+<section class="result technique-card" aria-live="polite">
+<h2>Valori per Nikon Z6 III</h2>
+<p id="meter-value" style="margin-top:8px"></p>
+<dl class="three"><div><dt>Tempo</dt><dd id="meter-time"></dd></div><div><dt>Diaframma</dt><dd id="meter-f"></dd></div><div><dt>ISO</dt><dd id="meter-out-iso"></dd></div></dl>
+<p id="meter-caution" class="hint" style="color:#fff;margin-top:9px"></p>
+</section>
+<section class="panel technique-card">
+<h2>Esposizioni equivalenti</h2>
+<p class="hint">Variando il diaframma, a parità di ISO e luminosità stimata.</p>
+<table id="meter-equivalents"><thead><tr><th>Diaframma</th><th>Tempo vicino</th><th>ISO</th></tr></thead><tbody id="meter-equiv-body"></tbody></table>
+<div class="meter-buttons"><button id="meter-copy" type="button">Copia impostazioni</button><label for="meter-camera-input" id="meter-photo" class="meter-camera-button">Scatta foto di riferimento</label><input id="meter-camera-input" type="file" accept="image/*" capture="environment" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" aria-label="Apri fotocamera iPhone"></div>
+<img id="meter-preview" class="meter-preview" alt="Fotografia di riferimento scattata con l'iPhone">
+<p id="meter-status" class="hint" role="status">La foto è solo un riferimento visivo. L'esposizione automatica dell'iPhone impedisce di ricavare da soli pixel un valore EV100 affidabile.</p>
+</section>
+</section>
+
+<div id="calculator-view" hidden>
+<section aria-labelledby="genre-title">
+<h2 id="genre-title">Genere fotografico</h2>
+<div class="genres" id="genres"></div>
+</section>
+<form id="calculator">
+<section class="panel" aria-labelledby="reading-title">
+<div class="row"><h2 id="reading-title">Lettura della luce</h2><span>Lettura Nikon</span></div>
+<div class="three">
+<label>Tempo<select id="time"></select></label>
+<label>Diaframma<select id="aperture"></select></label>
+<label>ISO<select id="iso"></select></label>
+</div>
+<p class="hint" id="reading-note">Valori di esempio. Sostituiscili con quelli misurati sulla scena.</p>
+</section>
+<section class="panel" aria-labelledby="variant-title">
+<h2 id="variant-title">Azione</h2><div class="segments" id="variants"></div>
+</section>
+<section class="result" aria-labelledby="result-title" aria-live="polite">
+<h2 id="result-title">Da impostare sulla Nikon</h2>
+<dl class="three">
+<div><dt>Tempo di posa</dt><dd id="out-time"></dd></div>
+<div><dt>Diaframma</dt><dd id="out-aperture"></dd></div>
+<div><dt>ISO</dt><dd id="out-iso"></dd></div>
+</dl>
+<p id="warning" hidden></p>
+</section>
+<details>
+<summary>Controlli avanzati</summary>
+<div class="advanced">
+<label>Blocca tempo<select id="lock-time"></select></label>
+<label>Blocca diaframma<select id="lock-aperture"></select></label>
+<label>Blocca ISO<select id="lock-iso"></select></label>
+<label>Limite ISO<select id="iso-cap"></select></label>
+<label>Compensazione<select id="compensation"></select></label>
+</div>
+</details>
+</form>
+<section class="explanation" aria-labelledby="explanation-title">
+<h2 id="explanation-title">Spiegazione</h2>
+<p id="explanation"></p>
+<p class="hint">Imposta i tre valori in modalità M con ISO automatico disattivato. Per la lettura iniziale puoi usare la modalità A con compensazione a zero.</p>
+</section>
+</div>
+<p class="hint" id="offline-status" role="status" hidden></p>
+</main>
+<script>
+'use strict';
+
+const tempos = '30 25 20 15 13 10 8 6 5 4 3.2 2.5 2 1.6 1.3 1 1/1.3 1/1.6 1/2 1/2.5 1/3 1/4 1/5 1/6 1/8 1/10 1/13 1/15 1/20 1/25 1/30 1/40 1/50 1/60 1/80 1/100 1/125 1/160 1/200 1/250 1/320 1/400 1/500 1/640 1/800 1/1000 1/1250 1/1600 1/2000 1/2500 1/3200 1/4000 1/5000 1/6400 1/8000'.split(' ');
+const apertures = [4, 4.5, 5, 5.6, 6.3, 7.1, 8, 9, 10, 11, 13, 14, 16, 18, 20, 22];
+const sensitivities = [100, 125, 160, 200, 250, 320, 400, 500, 640, 800, 1000, 1250, 1600, 2000, 2500, 3200, 4000, 5000, 6400, 8000, 10000, 12800, 16000, 20000, 25600, 32000, 40000, 51200, 64000];
+
+function seconds(value) {
+  const [numerator, denominator = 1] = String(value).replace(',', '.').split('/').map(Number);
+  return numerator / denominator;
+}
+
+function exposure(time, aperture, iso) {
+  return Math.log2(seconds(time) * iso / aperture ** 2);
+}
+
+function recommend({ reading, target, priority, locks = {}, maxIso = 64000, compensation = 0 }) {
+  const desired = exposure(...reading) + compensation;
+  const times = locks.time ? [locks.time] : tempos;
+  const stops = locks.aperture ? [locks.aperture] : apertures;
+  const isos = sensitivities.filter(iso => iso <= maxIso && (!locks.iso || iso === locks.iso));
+  let best;
+  let bestScore = Infinity;
+
+  for (const time of times) {
+    const timeDelta = Math.log2(seconds(time) / seconds(target[0]));
+    for (const aperture of stops) {
+      const apertureDelta = Math.abs(2 * Math.log2(aperture / target[1]));
+      for (const iso of isos) {
+        const difference = exposure(time, aperture, iso) - desired;
+        const missed = Math.max(0, Math.abs(difference) - 0.18);
+        const motion = target[2] ? 0 : Math.max(0, timeDelta);
+        const score = missed * 100
+          + motion * (priority === 'time' ? 40 : 16)
+          + apertureDelta * (priority === 'aperture' ? 20 : 5)
+          + Math.log2(iso / 100) * 2
+          + Math.abs(timeDelta) * (priority === 'time' ? 4 : 0.15)
+          + Math.abs(difference);
+        if (score < bestScore) {
+          best = { time, aperture, iso, difference, motion };
+          bestScore = score;
+        }
+      }
+    }
+  }
+  return best;
+}
+
+if (typeof module !== 'undefined') module.exports = { recommend, exposure, seconds };
+
+</script>
+<script>
+'use strict';
+
+const profiles = {
+  landscape: { label: 'Paesaggio', title: 'Supporto', priority: 'aperture', variants: [
+    ['A mano libera', '1/125', 8], ['Treppiede', '1/125', 8, true]
+  ] },
+  portrait: { label: 'Ritratto', title: 'Soggetto', priority: 'aperture', variants: [
+    ['In posa', '1/250', 4], ['In movimento', '1/500', 4]
+  ] },
+  sport: { label: 'Sport', title: 'Azione · Basket indoor', priority: 'time', variants: [
+    ['Tranquilla', '1/500', 4], ['Di gioco', '1/800', 4], ['Rapida', '1/1000', 4]
+  ] },
+  street: { label: 'Street', title: 'Scena', priority: 'aperture', variants: [
+    ['Passeggio', '1/320', 5.6], ['Più profondità', '1/320', 8]
+  ] }
+};
+
+const element = id => document.getElementById(id);
+const decimal = value => String(value).replace('.', ',');
+const fStop = value => 'f/' + decimal(value);
+let genre = 'sport';
+let variant = 1;
+
+function choices(id, values, label, selected, emptyLabel) {
+  const select = element(id);
+  if (emptyLabel) select.add(new Option(emptyLabel, ''));
+  for (const value of values) select.add(new Option(label(value), value));
+  select.value = selected;
+}
+
+choices('time', tempos, value => decimal(value) + ' s', '1/250');
+choices('aperture', apertures, fStop, 4);
+choices('iso', sensitivities, String, 1600);
+choices('lock-time', tempos, value => decimal(value) + ' s', '', 'Libero');
+choices('lock-aperture', apertures, fStop, '', 'Libero');
+choices('lock-iso', sensitivities, String, '', 'Libero');
+choices('iso-cap', sensitivities, String, '', 'Nessuno');
+choices('compensation', Array.from({length: 13}, (_, i) => i - 6), value =>
+  (value > 0 ? '+' : '') + (value / 3).toLocaleString('it', { maximumFractionDigits: 2 }) + ' EV', 0);
+
+function renderButtons(id, entries, selected, choose) {
+  const group = element(id);
+  if (group.childElementCount !== entries.length || Array.from(group.children).some((button, i) =>
+    button.textContent !== entries[i][1])) {
+    group.replaceChildren(...entries.map(([value, label]) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = label;
+      button.addEventListener('click', () => choose(value));
+      return button;
+    }));
+  }
+  Array.from(group.children).forEach((button, i) =>
+    button.setAttribute('aria-pressed', String(entries[i][0] === selected)));
+}
+
+function render() {
+  const profile = profiles[genre];
+  const [, time, aperture, tripod] = profile.variants[variant];
+  element('variant-title').textContent = profile.title;
+  renderButtons('genres', Object.entries(profiles).map(([id, item]) => [id, item.label]), genre, id => {
+    genre = id;
+    variant = id === 'sport' ? 1 : 0;
+    render();
+  });
+  renderButtons('variants', profile.variants.map(([label], index) => [index, label]), variant, index => {
+    variant = index;
+    render();
+  });
+  const reading = [element('time').value, +element('aperture').value, +element('iso').value];
+  const maxIso = +element('iso-cap').value || 64000;
+  const result = recommend({
+    reading,
+    target: [time, aperture, tripod],
+    priority: profile.priority,
+    locks: { time: element('lock-time').value, aperture: +element('lock-aperture').value, iso: +element('lock-iso').value },
+    maxIso,
+    compensation: +element('compensation').value / 3
+  });
+  element('out-time').textContent = result ? decimal(result.time) + ' s' : '—';
+  element('out-aperture').textContent = result ? fStop(result.aperture) : '—';
+  element('out-iso').textContent = result ? result.iso : '—';
+  const messages = [];
+  if (!result) messages.push('L’ISO bloccato supera il limite. Modifica uno dei due valori.');
+  if (result && Math.abs(result.difference) > 0.2) {
+    const direction = result.difference < 0 ? 'più scura' : 'più chiara';
+    messages.push('Esposizione ' + direction + ' di ' + Math.abs(result.difference).toLocaleString('it', { maximumFractionDigits: 1 }) + ' EV rispetto all’obiettivo. Prova a liberare un parametro o a cambiare il limite ISO.');
+  }
+  if (result && result.motion > 0.05) messages.push('Il tempo è più lungo di ' + decimal(time) + ' s. Il soggetto in movimento potrebbe risultare mosso.');
+  element('warning').hidden = !messages.length;
+  element('warning').textContent = messages.join(' ');
+  const goal = tripod ? 'Su treppiede con scena ferma, la priorità è tenere bassi gli ISO.'
+    : 'Il profilo parte da ' + decimal(time) + ' s a ' + fStop(aperture) + ' e adatta gli ISO alla luce misurata.';
+  element('explanation').textContent = goal + (result && result.aperture !== aperture ? ' Il diaframma consigliato cambia per tenere conto della luce o dei vincoli scelti.' : '');
+}
+
+for (const id of ['time', 'aperture', 'iso']) {
+  element(id).addEventListener('change', () => {
+    element('reading-note').textContent = 'Usa la lettura della scena che stai per fotografare.';
+  });
+}
+element('calculator').addEventListener('change', render);
+element('calculator').addEventListener('submit', event => event.preventDefault());
+render();
+
+const recipeMenu = {
+  mode: 'Ghiera dei modi',
+  focus: 'Menu i → Modalità messa a fuoco',
+  area: 'Menu i → Modalità area AF',
+  subject: 'Menu ripresa foto → Opzioni rilevamento soggetto AF/MF',
+  iso: 'Menu ripresa foto → Impostazioni sensibilità ISO',
+  vr: 'Menu i → Riduzione vibrazioni',
+  flicker: 'Menu ripresa foto → Riduzione sfarfallio foto',
+  shutter: 'Impostazioni personalizzate → d6 Tipo di otturatore',
+  release: 'Menu ripresa foto → Modo di scatto',
+  bracketing: 'Menu ripresa foto → Bracketing automatico'
+};
+
+const recipes = [
+  {
+    label: 'Basket indoor', scene: 'Partita in palestra, azione di gioco. Usa la focale che ti permette di seguire il giocatore.',
+    time: '1/800 s', aperture: 'f/4', iso: 'Auto',
+    menu: {mode:'M', focus:'AF-C', area:'AF ad area estesa (L)', subject:'Persone', iso:'ISO 100, controllo automatico ON, massimo 12.800 come prova iniziale', release:'Continuo H per raffiche brevi', flicker:'ON se noti variazioni di luce o colore tra gli scatti', shutter:'Otturatore meccanico'},
+    tip:'Per momenti più tranquilli prova 1/500 s. Per salti e azione rapida prova 1/1000 s. Se la foto è scura al limite ISO, allunga il tempo quando l’azione lo permette.'
+  },
+  {
+    label: 'Ritratto all’aperto', scene: 'Soggetto in posa, in ombra luminosa. Prova 85–120 mm per un ritratto stretto.',
+    time:'1/250 s', aperture:'f/4', iso:'Auto',
+    menu:{mode:'M', focus:'AF-C', area:'AF ad area estesa (S)', subject:'Persone', iso:'ISO 100, controllo automatico ON, massimo 3200 come prova iniziale'},
+    tip:'Metti a fuoco sull’occhio e allontana il soggetto dallo sfondo. Per due persone su piani diversi prova f/5,6.'
+  },
+  {
+    label:'Street di giorno', scene:'Persone che camminano, luce diurna. Parti da 28–50 mm.',
+    time:'1/320 s', aperture:'f/5,6', iso:'Auto',
+    menu:{mode:'M', focus:'AF-C', area:'AF a punto singolo', iso:'ISO 100, controllo automatico ON, massimo 6400 come prova iniziale'},
+    tip:'Se vuoi includere più elementi a fuoco prova f/8. Per un soggetto rapido parti da 1/500 s.'
+  },
+  {
+    label:'Paesaggio di giorno', scene:'Paesaggio statico in pieno giorno. Parti da 24–35 mm.',
+    time:'1/125 s', aperture:'f/8', iso:'100',
+    menu:{mode:'A, scegli f/8. Il tempo è un esempio calcolato dalla Nikon in base alla luce.', focus:'AF-S', area:'AF a punto singolo', iso:'ISO 100, controllo automatico OFF', vr:'Normale a mano libera'},
+    tip:'Controlla il tempo che appare nel mirino. Se è troppo lungo per scattare a mano libera, usa un treppiede o alza gli ISO.'
+  },
+  {
+    label:'Paesaggio all’ora blu', scene:'Paesaggio fermo su treppiede, poco dopo il tramonto.',
+    time:'2 s', aperture:'f/8', iso:'100',
+    menu:{mode:'M', focus:'AF-S, oppure MF se l’AF fatica', area:'AF a punto singolo se usi AF-S', iso:'ISO 100, controllo automatico OFF', vr:'OFF su treppiede stabile', release:'Autoscatto, per evitare di muovere la fotocamera'},
+    tip:'Scatta una foto di prova. Passa a 1 s se le luci importanti sono bruciate o a 4 s se la scena è troppo scura.'
+  },
+  {
+    label:'Animali in movimento', scene:'Animale a terra all’aperto, con luce diurna. Usa 120 mm se serve avvicinare il soggetto.',
+    time:'1/1000 s', aperture:'f/4', iso:'Auto',
+    menu:{mode:'M', focus:'AF-C', area:'AF ad area estesa (L)', subject:'Animali', iso:'ISO 100, controllo automatico ON, massimo 6400 come prova iniziale', release:'Continuo H'},
+    tip:'Per un animale fermo prova 1/500 s. Controlla nel mirino che l’area AF resti sul soggetto.'
+  },
+  {
+    label:'Acqua setosa', scene:'Cascata o torrente in ombra, su treppiede.',
+    time:'1/2 s', aperture:'f/11', iso:'100',
+    menu:{mode:'M', focus:'AF-S', area:'AF a punto singolo', iso:'ISO 100, controllo automatico OFF', vr:'OFF su treppiede stabile', release:'Autoscatto'},
+    tip:'Prova 1/4 s per conservare più trama o 1 s per un effetto più morbido. Se l’acqua è troppo chiara al tempo desiderato, serve meno luce, per esempio con un filtro ND.'
+  }
+];
+
+function renderRecipe() {
+  const recipe = recipes[Number(element('recipe-choice').value)];
+  element('recipe-scene').textContent = recipe.scene;
+  element('recipe-time').textContent = recipe.time;
+  element('recipe-aperture').textContent = recipe.aperture;
+  element('recipe-iso').textContent = recipe.iso;
+  element('recipe-tip').textContent = recipe.tip;
+  element('recipe-menu').replaceChildren(...Object.entries(recipe.menu).map(([key, setting]) => {
+    const row = document.createElement('div');
+    const label = document.createElement('dt');
+    const value = document.createElement('dd');
+    label.textContent = recipeMenu[key];
+    value.textContent = setting;
+    row.append(label, value);
+    return row;
+  }));
+}
+
+const views = {
+  recipes: ['show-recipes', 'recipes'],
+  techniques: ['show-techniques', 'techniques'],
+  presets: ['show-presets', 'presets'],
+  calculator: ['show-calculator', 'calculator-view'],
+  meter: ['show-meter', 'meter-view']
+};
+for (const [name, [buttonId]] of Object.entries(views)) {
+  element(buttonId).addEventListener('click', () => {
+    for (const [view, [button, panel]] of Object.entries(views)) {
+      element(panel).hidden = view !== name;
+      element(button).setAttribute('aria-pressed', String(view === name));
+    }
+  });
+}
+
+choices('recipe-choice', recipes.map((_, index) => index), index => recipes[index].label, 0);
+element('recipe-choice').addEventListener('change', renderRecipe);
+renderRecipe();
+
+</script>
+<script>
+'use strict';
+
+// Le pagine si riferiscono agli allegati. Le impostazioni sono esempi per la Z6 III.
+const techniques = [
+  ['Architettura','Facciate e verticali','Architettura.pdf · pp. 2–10','Arretra e tieni la fotocamera in bolla. Cerca una facciata frontale, poi prova un ritaglio che valorizzi finestre, linee e materiali.','A · 24–35 mm · f/8 · ISO 100. La Nikon sceglie il tempo.','Menu i → AF-S e AF a punto singolo.','Confronta il bordo dell’edificio con la griglia. Se vuoi verticali parallele, evita di inclinare la macchina verso l’alto.'],
+  ['Architettura','Ritmo, scale e portici','Architettura.pdf · pp. 14–25, 29–36','Sposta il punto di vista finché arcate o gradini formano una sequenza. Scegli tra simmetria e una diagonale che conduce verso il fondo.','A · 24–50 mm · f/8 · ISO 100 su treppiede.','Menu i → AF-S. Modo di scatto → Autoscatto.','Controlla i bordi e prova anche un dettaglio delle ombre o un riflesso.'],
+  ['Luci','Ritratto alla finestra','Luci.pdf · pp. 1, 10–11','Metti il soggetto di lato alla finestra. Una tenda chiara diffonde il sole diretto. Ruota il viso finché l’ombra conserva il dettaglio che vuoi.','M · 1/250 s · f/4 · ISO Auto.','Menu i → AF-C e area estesa (S). Menu ripresa foto → rilevamento Persone.','Se l’ombra è troppo profonda, prova un cartoncino bianco sul lato opposto alla finestra.'],
+  ['Luci','Controluce e silhouette','Luci.pdf · pp. 4–9','Per la silhouette cerca un profilo riconoscibile davanti a uno sfondo luminoso. Per mostrare il viso aggiungi luce riflessa o cambia posizione.','A · f/5,6 · ISO 100. Per la silhouette esponi per lo sfondo.','Menu i → Misurazione. Prova Spot su una zona luminosa con dettaglio, poi verifica l’istogramma.','Allontana braccia e gambe dal busto per rendere leggibile la sagoma.'],
+  ['Luci','Polarizzatore e filtro ND','Luci.pdf · pp. 2–3','Ruota il polarizzatore per dosare i riflessi su acqua o vetro. Usa un filtro ND quando la scena è troppo luminosa per il tempo lungo desiderato.','Esempio ND da 3 stop: da 1/8 s a 1 s a diaframma e ISO invariati.','Ghiera → M. Menu ripresa foto → ISO automatico OFF per mantenere gli ISO fissi.','Con il polarizzatore controlla che il cielo resti uniforme, soprattutto a 24 mm.'],
+  ['Natura e animali','Fiori e dettagli','Natura e Animali.pdf · pp. 7–16','Abbassati alla quota del fiore. Cerca uno sfondo distante e semplice. Confronta l’inquadratura dell’intera pianta con un dettaglio.','M · 1/320 s · f/5,6 · ISO Auto, a mano libera.','Menu i → AF-S e punto singolo. Con vento, prova AF-C e un tempo più rapido.','Controlla ingrandendo gli stami. Se la profondità è troppo ridotta, chiudi a f/8.'],
+  ['Natura e animali','Fauna ferma e in volo','Natura e Animali.pdf · pp. 4–6, 20–25, 43–45','Osserva il comportamento prima di scattare. Resta a distanza, usa 120 mm se utile e lascia spazio nella direzione dello sguardo o del volo.','M · f/4 · ISO Auto. Parti da 1/500 s per un animale fermo o 1/1600 s in volo.','Menu i → AF-C e area estesa (L). Menu ripresa foto → rilevamento Animali.','Controlla l’occhio a ingrandimento. Se in volo l’AF prende lo sfondo, riduci l’area quando riesci a seguire il soggetto.'],
+  ['Notturni','Città e riflessi all’ora blu','Notturni.pdf · pp. 2–11','Arriva prima che il cielo diventi nero. Prova a includere i riflessi per collegare luci artificiali e cielo. Usa un treppiede.','M · 2 s · f/8 · ISO 100 come prima prova.','Menu i → AF-S su un bordo illuminato, oppure MF. VR OFF su treppiede stabile.','Se le insegne perdono dettaglio, dimezza il tempo e ricontrolla.'],
+  ['Notturni','Scie luminose','Notturni.pdf · pp. 12–16, 20–21','Inquadra da una posizione consentita e stabile. Usa il percorso delle luci come linea che conduce nell’immagine.','M · 8 s · f/8 · ISO 100. Regola il tempo in base alla lunghezza delle scie.','Menu ripresa foto → ISO automatico OFF. Modo di scatto → Autoscatto.','Prova 4 s per scie più corte. Controlla che il resto della scena resti leggibile.'],
+  ['Notturni','Fuochi d’artificio','Notturni.pdf · pp. 22–28','Da una posizione autorizzata, lascia spazio sopra il punto di lancio e fissa la macchina su treppiede.','M · 2 s · f/8 · ISO 100.','Menu i → MF. Metti a fuoco su una luce distante e verifica a ingrandimento.','Accorcia il tempo se molte esplosioni si sovrappongono o i colori delle scie diventano bianchi.'],
+  ['Paesaggio','Orizzonte, piani e diagonali','Paesaggio.pdf · pp. 2–16, 26–34','Decidi se domina il cielo o la terra e sposta l’orizzonte di conseguenza. Usa un sentiero o un primo piano per accompagnare lo sguardo.','A · 24–35 mm · f/8 · ISO 100.','Menu i → AF-S e punto singolo.','Controlla il tempo a mano libera e verifica a ingrandimento primo piano e sfondo.'],
+  ['Paesaggio','Acqua congelata o setosa','Paesaggio.pdf · pp. 17–22','Confronta due scatti della stessa acqua. Il tempo breve evidenzia gli spruzzi, quello lungo rende visibile il flusso.','Spruzzi: M · 1/1000 s · f/5,6 · ISO Auto. Seta: M · 1/2 s · f/11 · ISO 100, su treppiede.','Per la seta disattiva ISO Auto. Usa autoscatto e valuta un ND se c’è troppa luce.','Prova 1/4 s se vuoi conservare più trama nell’acqua.'],
+  ['Persone e ritratto','Ritratto ambientato e primo piano','Persone e Ritratto.pdf · pp. 7–14','Scegli un luogo che racconti qualcosa della persona. Includilo a 35 mm, poi stringi a 85–120 mm per dare risalto al viso.','M · 1/250 s · f/4 · ISO Auto.','Menu i → AF-C e area estesa (S). Menu ripresa foto → rilevamento Persone.','Per il primo piano controlla che sia nitido l’occhio più vicino.'],
+  ['Persone e ritratto','Bambini e piccoli gruppi','Persone e Ritratto.pdf · pp. 19–29, 53–58','Abbassati all’altezza dei bambini. Per un gruppo, avvicina i volti allo stesso piano prima di chiudere il diaframma.','M · 1/500 s · f/5,6 · ISO Auto. Per un gruppo su più file prova f/8.','Menu i → AF-C e area estesa (S). Menu ripresa foto → rilevamento Persone.','Ingrandisci uno scatto e controlla i volti nelle diverse file.'],
+  ['Reportage','Una storia in sequenza','Reportage.pdf · pp. 1–15','Alterna una veduta del luogo, un gesto, il dettaglio delle mani e un’immagine che chiuda la storia. La sequenza della preparazione della pasta è un esempio.','M · 1/320 s · f/5,6 · ISO Auto. Usa 24–35 mm per il contesto e 70–120 mm per i dettagli.','Menu i → AF-C e AF a punto singolo se vuoi selezionare un gesto preciso.','In revisione scegli immagini che aggiungano ciascuna un passaggio diverso.'],
+  ['Sport','Congelare l’azione','Sport.pdf · pp. 5–12, 27–34','Osserva la dinamica prima di scattare. Prevedi il punto culminante e lascia spazio a palla o attrezzo nell’inquadratura.','Basket: M · 1/800 s · f/4 · ISO Auto. All’aperto, prova 1/1000 s per un’azione rapida.','Menu i → AF-C e area estesa (L). Rilevamento Persone e raffica Continuo H.','Se il volto è nitido ma mani o palla sono troppo mosse, prova un tempo più rapido.'],
+  ['Sport','Panning','Sport.pdf · pp. 13–26, 35–38','Segui lateralmente il soggetto prima, durante e dopo lo scatto. Cerca un fondale con dettagli che possano diventare strisce.','S · 1/60 s · ISO Auto. La Nikon sceglie il diaframma.','Menu i → AF-C. Modo di scatto → Continuo H per raffiche brevi.','Prova 1/125 s se il soggetto è sempre mosso o 1/30 s per più scia.'],
+  ['Still life','Oggetti, cibo e luce laterale','Still Life.pdf · pp. 2–9, 18–24','Costruisci la scena attorno a un oggetto. Usa una sola fonte laterale all’inizio, poi sposta il pannello bianco per dosare le ombre.','M · 1/4 s · f/8 · ISO 100, su treppiede con luce continua.','Menu i → AF-S a punto singolo. Modo di scatto → Autoscatto.','Regola il tempo in base alla luce. Controlla i bordi e togli gli oggetti che competono con il soggetto.'],
+  ['Still life','Trasparenze, texture e riflessi','Still Life.pdf · pp. 10–17, 25–36','Per una fetta di agrume prova una luce diffusa da dietro. Per metallo e vetro sposta i pannelli chiari finché i riflessi disegnano la forma.','M · 1/2 s · f/8 · ISO 100, con supporto stabile e luce continua.','Menu i → AF-S a punto singolo oppure MF per un dettaglio.','Ingrandisci i bordi e controlla le zone chiare prima di aumentare la luce.'],
+  ['Effetti speciali','Zoomata e mosso intenzionale','Tecniche ed effetti speciali.pdf · pp. 3, 14–18','Centra il soggetto e ruota la ghiera dello zoom durante la posa. Per un altro effetto, muovi tutta la fotocamera lungo una sola direzione.','M · 1/4 s · f/8 · ISO 100, in ombra come punto di partenza.','Menu i → MF dopo aver messo a fuoco. Se la scena è troppo chiara prova un filtro ND.','Confronta una zoomata breve e una lunga, mantenendo un centro riconoscibile.'],
+  ['Effetti speciali','Sovrapposizione di due immagini','Tecniche ed effetti speciali.pdf · pp. 2–3, 6–12','Abbina un soggetto semplice a una texture. Prova a collocare il dettaglio della texture nelle zone più vuote della prima immagine.','Come esercizio, prepara due scatti ben esposti e fondili in postproduzione.','Per provare in macchina consulta Menu ripresa foto → Esposizione multipla.','Confronta il risultato con gli originali e riduci il peso della texture se il soggetto si perde.'],
+  ['Composizione','Terzi, orizzonte e punti di forza','Tavola di composizione allegata · riquadri 1 e 4','Prova un soggetto vicino a un incrocio della griglia. Metti l’orizzonte alto per dare spazio al terreno o basso per valorizzare il cielo.','Esercizio: confronta due inquadrature con la stessa esposizione.','Controlla che l’orizzonte sia diritto prima di decidere dove collocarlo.','Confronta la posizione del soggetto, lo spazio vuoto e i bordi.'],
+  ['Composizione','Diagonali, fuga e spirali','Tavola di composizione allegata · riquadri 2, 3, 5 e 12','Usa una diagonale per dare direzione. In una prospettiva cerca dove convergono le linee. In un dettaglio a spirale verifica dove finisce lo sguardo.','Esercizio: prova 24 mm per la prospettiva e una focale più lunga per isolare un dettaglio.','Cambia posizione prima di correggere l’inquadratura con lo zoom.','Controlla che le linee portino verso un elemento significativo.'],
+  ['Composizione','Sfondo, altezza e colore','Tavola di composizione allegata · riquadri 6–11','Gira attorno al soggetto, abbassati alla sua altezza e semplifica lo sfondo. Usa colori complementari o contrasto di luminosità per separare il soggetto.','Esercizio: scatta una versione larga e una in cui il soggetto riempie il fotogramma.','Per una silhouette lascia il soggetto in ombra e misura sullo sfondo luminoso.','Controlla nitidezza del soggetto, elementi ai bordi e separazione dallo sfondo.'],
+  ['Natura e animali','Focus stacking di un dettaglio','Nikon · Guida Z6 III, Spostamento della messa a fuoco','Fissa la Nikon su un treppiede e scegli un soggetto immobile. Metti a fuoco appena davanti al dettaglio più vicino: la sequenza procede verso distanze maggiori.','M · f/5,6 · ISO 100 · tempo da regolare con uno scatto di prova. Usa luce stabile.','Menu ripresa foto → Riprese con spostamento della messa a fuoco. Prova 15 scatti con incremento 3 e intervallo 0 s senza flash.','Verifica che la serie copra anche il punto più lontano. Se ci sono zone senza un fotogramma nitido, usa un incremento più piccolo e aumenta gli scatti. Unisci la serie in postproduzione.','https://onlinemanual.nikonimglib.com/z6III/it/psm_focus_shift_shooting_166.html'],
+  ['Paesaggio','Bracketing per scene ad alto contrasto','Nikon · Guida Z6 III, Bracketing automatico','Inquadra una scena ferma, per esempio un interno con finestre luminose. Usa il treppiede per mantenere allineate le immagini.','A · f/8 · ISO 100 · ISO Auto OFF. Parti da tre fotogrammi a −2, 0 e +2 EV.','Menu ripresa foto → Bracketing automatico → Bracketing AE. Scegli 3 scatti con incremento di 2 EV.','Verifica che lo scatto più scuro conservi le alte luci e quello più chiaro le ombre. Unisci la serie in postproduzione, poi disattiva il bracketing.','https://onlinemanual.nikonimglib.com/z6III/it/psm_auto_bracketing_161.html'],
+  ['Notturni','Via Lattea con il 24–120 mm','Nikon USA · How to Photograph the Milky Way','Cerca un cielo buio e usa il treppiede. A 24 mm, ingrandisci una stella luminosa sul display e regola il fuoco finché appare più piccola possibile.','M · 24 mm · 10 s · f/4 · ISO 6400 come prova iniziale.','Menu i → MF. Menu ripresa foto → ISO automatico OFF.','Ingrandisci le stelle ai bordi. Se si allungano, prova 6–8 s. Regola l’esposizione dopo aver controllato lo scatto.','https://www.nikonusa.com/learn-and-explore/c/tips-and-techniques/how-to-photograph-the-milky-way'],
+  ['Still life','Pixel shift per oggetti immobili','Nikon · Guida Z6 III, Spostamento dei pixel','Scegli un oggetto rigido, luce continua stabile e un treppiede. Verifica fuoco ed esposizione prima di iniziare.','M · f/8 · ISO 100 · tempo da regolare con uno scatto di prova.','Menu ripresa foto → Riprese con spostamento dei pixel. Scegli la modalità singola foto per una serie.','Unisci i NEF in Nikon NX Studio. Controlla eventuali artefatti sui bordi e ripeti se il soggetto o la luce sono cambiati durante la serie.','https://onlinemanual.nikonimglib.com/z6III/it/psm_pixel_shift_shooting_167.html']
+];
+
+const techniqueCategory = element('technique-category');
+const techniqueChoice = element('technique-choice');
+
+function renderTechnique() {
+  const technique = techniques[Number(techniqueChoice.value)];
+  const [, title, source, method, setup, camera, check, url] = technique;
+  const sourceLink = element('technique-source-link');
+  sourceLink.hidden = !url;
+  if (url) sourceLink.href = url;
+  else sourceLink.removeAttribute('href');
+  for (const [id, value] of Object.entries({ title, source, method, setup, camera, check })) {
+    element('technique-' + id).textContent = value;
+  }
+}
+
+function filterTechniques() {
+  const category = techniqueCategory.value;
+  const indices = techniques.flatMap(([group], index) => group === category ? [index] : []);
+  techniqueChoice.replaceChildren();
+  choices('technique-choice', indices, index => techniques[index][1], indices[0]);
+  renderTechnique();
+}
+
+const categories = [...new Set(techniques.map(([category]) => category))];
+choices('technique-category', categories, String, categories[0]);
+techniqueCategory.addEventListener('change', filterTechniques);
+techniqueChoice.addEventListener('change', renderTechnique);
+filterTechniques();
+
+</script>
+<script>
+'use strict';
+
+const userProfiles = [
+  ['Sport', recipes[0], 'U1'],
+  ['Sport', {
+    label: 'Panning', time: '1/60 s', aperture: 'Auto', iso: 'Auto',
+    menu: { mode: 'S · 1/60 s', focus: 'AF-C', area: 'AF ad area estesa (L)', iso: 'ISO 100, controllo automatico ON', release: 'Continuo H' }
+  }, 'U1'],
+  ['Persone e street', recipes[1], 'U2'],
+  ['Persone e street', recipes[2], 'U2'],
+  ['Paesaggio e notturni', recipes[3], 'U3'],
+  ['Paesaggio e notturni', recipes[4], 'U3'],
+  ['Paesaggio e notturni', recipes[6], 'U3'],
+  ['Paesaggio e notturni', {
+    label: 'Bracketing per HDR', time: 'Auto', aperture: 'f/8', iso: '100',
+    menu: { mode: 'A · f/8', focus: 'AF-S', area: 'AF a punto singolo', iso: 'ISO 100, controllo automatico OFF', bracketing: 'Bracketing AE · 3 fotogrammi · incremento 2 EV' }
+  }, 'U3'],
+  ['Paesaggio e notturni', {
+    label: 'Via Lattea', time: '10 s', aperture: 'f/4', iso: '6400',
+    menu: { mode: 'M · 10 s · f/4', focus: 'MF, verifica su una stella ingrandita', iso: 'ISO 6400, controllo automatico OFF', vr: 'OFF su treppiede stabile' }
+  }, 'U3'],
+  ['Natura e animali', recipes[5], 'U1'],
+  ['Still life ed effetti', {
+    label: 'Focus stacking', time: 'Da provare', aperture: 'f/5,6', iso: '100',
+    menu: { mode: 'M · f/5,6, regola il tempo con una prova', focus: 'AF-S, fuoco appena davanti al dettaglio più vicino', iso: 'ISO 100, controllo automatico OFF', vr: 'OFF su treppiede stabile', release: 'Fotogramma singolo' },
+    after: 'Dopo aver richiamato il profilo, apri Menu ripresa foto → Riprese con spostamento della messa a fuoco. Per una prova senza flash usa 15 scatti, incremento 3, intervallo 0 s. Avvia la sequenza da lì.'
+  }, 'U3'],
+  ['Still life ed effetti', {
+    label: 'Pixel shift', time: 'Da provare', aperture: 'f/8', iso: '100',
+    menu: { mode: 'M · f/8, regola il tempo con una prova', focus: 'AF-S', iso: 'ISO 100, controllo automatico OFF', vr: 'OFF su treppiede stabile' },
+    after: 'Dopo aver richiamato il profilo, apri Menu ripresa foto → Riprese con spostamento dei pixel. Scegli On (singola foto) e avvia la serie con il pulsante di scatto.'
+  }, 'U3'],
+  ['Still life ed effetti', {
+    label: 'Esposizione multipla', time: 'Auto', aperture: 'f/5,6', iso: '100',
+    menu: { mode: 'A · f/5,6', focus: 'AF-S', area: 'AF a punto singolo', iso: 'ISO 100, controllo automatico OFF' },
+    after: 'Dopo aver richiamato il profilo, apri Menu ripresa foto → Esposizione multipla. Per una prova scegli una singola serie, 2 scatti e sovrapposizione Media.'
+  }, 'U3']
+];
+
+function menuRows(profile) {
+  const rows = [];
+  const settings = profile.menu;
+  const photoMenu = 'MENU → C Ripresa foto → ';
+  const isoMenu = photoMenu + 'Impostazioni sensibilità ISO → ';
+
+  for (const [key, value] of Object.entries(settings)) {
+    if (key === 'iso') {
+      const auto = /\bON\b/.test(value);
+      const cap = value.match(/massimo ([\d.]+)/)?.[1];
+      rows.push([isoMenu + 'Sensibilità ISO', auto ? '100' : profile.iso]);
+      rows.push([isoMenu + 'Controllo automatico sensibilità ISO', auto ? 'ON' : 'OFF']);
+      if (cap) rows.push([isoMenu + 'Sensibilità massima', cap]);
+    } else if (key === 'bracketing') {
+      const base = photoMenu + 'Bracketing automatico → ';
+      rows.push([base + 'Imposta bracketing automatico', 'Bracketing AE']);
+      rows.push([base + 'Numero di scatti', '3F']);
+      rows.push([base + 'Incremento', '2,0 EV']);
+    } else if (key === 'shutter') {
+      rows.push(['MENU → A Impostazioni personalizzate → d Ripresa/Display → d6 Tipo di otturatore', value]);
+    } else {
+      rows.push([recipeMenu[key], value]);
+    }
+  }
+  return rows;
+}
+
+const presetCategory = element('preset-category');
+const presetChoice = element('preset-choice');
+const presetSlot = element('preset-slot');
+
+function renderPreset() {
+  const [, profile, suggestedSlot] = userProfiles[Number(presetChoice.value)];
+  presetSlot.value = suggestedSlot;
+  renderSaveSlot();
+  element('preset-title').textContent = profile.label;
+  element('preset-exposure').textContent = [profile.time, profile.aperture, 'ISO ' + profile.iso].join(' · ');
+  element('preset-menu').replaceChildren(...menuRows(profile).map(([path, setting]) => {
+    const row = document.createElement('div');
+    const label = document.createElement('dt');
+    const value = document.createElement('dd');
+    label.textContent = path;
+    value.textContent = setting;
+    row.append(label, value);
+    return row;
+  }));
+  const after = element('preset-after');
+  after.hidden = !profile.after;
+  after.textContent = profile.after || '';
+}
+
+function renderSaveSlot() {
+  element('preset-save').textContent = 'Salva in ' + presetSlot.value;
+}
+
+function filterPresets() {
+  const indices = userProfiles.flatMap(([group], index) => group === presetCategory.value ? [index] : []);
+  presetChoice.replaceChildren();
+  choices('preset-choice', indices, index => userProfiles[index][1].label, indices[0]);
+  renderPreset();
+}
+
+const presetCategories = [...new Set(userProfiles.map(([group]) => group))];
+choices('preset-category', presetCategories, String, presetCategories[0]);
+choices('preset-slot', ['U1', 'U2', 'U3'], String, 'U1');
+presetCategory.addEventListener('change', filterPresets);
+presetChoice.addEventListener('change', renderPreset);
+presetSlot.addEventListener('change', renderSaveSlot);
+filterPresets();
+
+</script>
+<script>
+'use strict';
+
+const storageKey = 'esposizione-personale-v1';
+const initialState = { favorites: [], slots: {}, gyms: [] };
+
+function readPersonalState() {
+  try {
+    return JSON.parse(localStorage.getItem(storageKey)) || initialState;
+  } catch {
+    return initialState;
+  }
+}
+
+let personal = readPersonalState();
+
+function showPersonalStatus(message) {
+  const status = element('personal-status');
+  status.hidden = false;
+  status.textContent = message;
+}
+
+function savePersonal() {
+  const data = JSON.stringify(personal);
+  if (window.sendPersonalState) {
+    window.sendPersonalState(data);
+    return;
+  }
+  try {
+    localStorage.setItem(storageKey, data);
+  } catch {
+    showPersonalStatus('I dati sono disponibili per questa sessione. Il browser ha bloccato il salvataggio locale.');
+  }
+}
+
+function actionButton(label, action) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = label;
+  button.addEventListener('click', action);
+  return button;
+}
+
+function changeChoice(id, value) {
+  const select = element(id);
+  select.value = value;
+  select.dispatchEvent(new Event('change'));
+}
+
+function normalizeSearch(value) {
+  return value.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
+}
+
+const library = [
+  ...recipes.map((recipe, index) => ({
+    key: 'recipe:' + recipe.label,
+    label: recipe.label,
+    section: 'Ricette',
+    index,
+    body: [recipe.scene, recipe.tip, ...Object.values(recipe.menu)].join(' ')
+  })),
+  ...techniques.map(([category, label, , method, setup, camera, check], index) => ({
+    key: 'technique:' + label,
+    label,
+    section: 'Tecniche',
+    category,
+    index,
+    body: [category, method, setup, camera, check].join(' ')
+  }))
+];
+
+function openEntry(entry) {
+  if (entry.category) {
+    element('show-techniques').click();
+    changeChoice('technique-category', entry.category);
+    changeChoice('technique-choice', entry.index);
+    element('technique-title').scrollIntoView({ block: 'start' });
+  } else {
+    element('show-recipes').click();
+    changeChoice('recipe-choice', entry.index);
+    element('recipe-choice').scrollIntoView({ block: 'center' });
+  }
+}
+
+function renderLibraryList(id, entries, emptyMessage) {
+  const list = element(id);
+  if (!entries.length) {
+    list.textContent = emptyMessage;
+    return;
+  }
+  list.replaceChildren(...entries.map(entry =>
+    actionButton(entry.label + ' · ' + entry.section, () => openEntry(entry))
+  ));
+}
+
+function renderSearch() {
+  const query = normalizeSearch(element('library-search').value);
+  if (!query) {
+    element('library-results').replaceChildren();
+    return;
+  }
+  const words = query.split(/\s+/);
+  const matches = library.filter(entry => {
+    const searchText = normalizeSearch(entry.label + ' ' + entry.body);
+    return words.every(word => searchText.includes(word));
+  });
+  renderLibraryList('library-results', matches, 'Nessuna scheda trovata.');
+}
+
+function updateFavoriteButton(id, key) {
+  const active = personal.favorites.includes(key);
+  element(id).textContent = active ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti';
+  element(id).setAttribute('aria-pressed', String(active));
+}
+
+function renderFavorites() {
+  renderLibraryList('favorite-list', library.filter(entry => personal.favorites.includes(entry.key)), 'Nessun preferito.');
+  updateFavoriteButton('favorite-recipe', 'recipe:' + recipes[+element('recipe-choice').value].label);
+  updateFavoriteButton('favorite-technique', 'technique:' + techniques[+element('technique-choice').value][1]);
+}
+
+function toggleFavorite(key) {
+  personal.favorites = personal.favorites.includes(key)
+    ? personal.favorites.filter(favorite => favorite !== key)
+    : [...personal.favorites, key];
+  savePersonal();
+  renderFavorites();
+}
+
+element('library-search').addEventListener('input', renderSearch);
+element('favorite-recipe').addEventListener('click', () => toggleFavorite('recipe:' + recipes[+element('recipe-choice').value].label));
+element('favorite-technique').addEventListener('click', () => toggleFavorite('technique:' + techniques[+element('technique-choice').value][1]));
+for (const id of ['technique-category', 'technique-choice', 'recipe-choice']) {
+  element(id).addEventListener('change', renderFavorites);
+}
+
+function renderSlotReminders() {
+  const buttons = ['U1', 'U2', 'U3'].map(slot => {
+    const saved = personal.slots[slot];
+    const index = userProfiles.findIndex(([group, profile]) => group === saved?.group && profile.label === saved.label);
+    const button = actionButton(slot + ' · ' + (saved?.label || 'Nessun profilo registrato'), () => {
+      const [group] = userProfiles[index];
+      changeChoice('preset-category', group);
+      changeChoice('preset-choice', index);
+      changeChoice('preset-slot', slot);
+      element('preset-title').scrollIntoView({ block: 'start' });
+    });
+    button.disabled = index < 0;
+    return button;
+  });
+  element('slot-reminders').replaceChildren(...buttons);
+}
+
+element('remember-preset').addEventListener('click', () => {
+  const [group, profile] = userProfiles[+presetChoice.value];
+  const slot = presetSlot.value;
+  personal.slots[slot] = { group, label: profile.label };
+  savePersonal();
+  renderSlotReminders();
+});
+
+const basketSpeeds = [['1/500', 'Tranquilla'], ['1/800', 'Di gioco'], ['1/1000', 'Rapida']];
+const problems = [
+  ['motion', 'Soggetto mosso'],
+  ['dark', 'Foto scura al limite ISO'],
+  ['noise', 'Troppo rumore'],
+  ['highlights', 'Alte luci bruciate'],
+  ['focus', 'Fuoco sullo sfondo']
+];
+const generalAdvice = {
+  motion: 'Prova un tempo più breve. Se la sfocatura dipende dal movimento della fotocamera, usa un appoggio stabile.',
+  dark: 'Apri il diaframma se puoi. Con soggetto fermo, allunga il tempo. Se il movimento lo impedisce, valuta un limite ISO più alto.',
+  noise: 'Fai entrare più luce con un tempo più lungo o un diaframma più aperto, se il soggetto e la profondità di campo lo permettono.',
+  highlights: 'Riduci la compensazione con ISO Auto o in modalità A. In M con ISO fisso, prova un tempo più breve.',
+  focus: 'Posiziona un punto o un’area AF più piccola sul soggetto e controlla il fuoco ingrandendo lo scatto.'
+};
+let basketballTime = '1/800';
+
+function renderQuickShot() {
+  const recipe = recipes[+element('recipe-choice').value];
+  const basket = recipe === recipes[0];
+  const mode = recipe.menu.mode.charAt(0);
+  element('quick-focus').textContent = [mode, recipe.menu.focus, recipe.menu.area].filter(Boolean).join(' · ');
+  element('basket-speeds').hidden = !basket;
+  element('gym-panel').hidden = !basket;
+  if (basket) {
+    element('recipe-time').textContent = basketballTime + ' s';
+    renderButtons('basket-speeds', basketSpeeds, basketballTime, value => {
+      basketballTime = value;
+      if (!gymEdit) element('gym-time').value = value;
+      renderQuickShot();
+    });
+  }
+  const problem = element('shot-problem').value;
+  let advice = generalAdvice[problem] || '';
+  if (basket && problem === 'motion') advice = 'Prova 1/1000 s per salti e passaggi rapidi. Se sei già a 1/1000 s, valuta 1/1250 s e controlla gli ISO.';
+  if (basket && ['dark', 'noise'].includes(problem)) advice = 'A f/4 puoi provare 1/500 s nelle fasi tranquille per raccogliere più luce. Se serve 1/800 s per fermare il gioco, conserva il tempo e controlla la luminosità prima di abbassare il limite ISO.';
+  element('shot-advice').textContent = advice;
+}
+
+choices('shot-problem', problems.map(([key]) => key), key => problems.find(([id]) => id === key)[1], '', 'Scegli il problema');
+element('shot-problem').addEventListener('change', renderQuickShot);
+element('recipe-choice').addEventListener('change', renderQuickShot);
+
+const gymForm = element('gym-form');
+let gymEdit = null;
+choices('gym-time', tempos, value => decimal(value) + ' s', '1/800');
+
+function resetGymForm() {
+  gymEdit = null;
+  gymForm.reset();
+  element('gym-time').value = basketballTime;
+  element('gym-cancel').hidden = true;
+}
+
+function renderGyms() {
+  const list = element('gym-list');
+  if (!personal.gyms.length) {
+    list.textContent = 'Nessuna ricetta per palestra.';
+    return;
+  }
+  list.replaceChildren(...personal.gyms.map(gym => {
+    const row = document.createElement('article');
+    const title = document.createElement('h2');
+    const exposure = document.createElement('p');
+    const notes = document.createElement('p');
+    title.textContent = gym.name;
+    exposure.textContent = 'M · ' + decimal(gym.time) + ' s · f/4 · ISO Auto (osservati ' + gym.iso + ')';
+    notes.textContent = gym.notes;
+    row.append(title, exposure, notes,
+      actionButton('Usa tempo', () => {
+        basketballTime = gym.time;
+        renderQuickShot();
+        element('recipe-time').scrollIntoView({ block: 'center' });
+      }),
+      actionButton('Modifica', () => {
+        gymEdit = gym.id;
+        element('gym-name').value = gym.name;
+        element('gym-time').value = gym.time;
+        element('gym-iso').value = gym.iso;
+        element('gym-notes').value = gym.notes;
+        element('gym-cancel').hidden = false;
+        element('gym-name').focus();
+      }),
+      actionButton('Elimina', () => {
+        if (!window.confirm('Eliminare la ricetta «' + gym.name + '»?')) return;
+        personal.gyms = personal.gyms.filter(entry => entry.id !== gym.id);
+        if (gymEdit === gym.id) resetGymForm();
+        savePersonal();
+        renderGyms();
+      }));
+    return row;
+  }));
+}
+
+element('gym-name').addEventListener('input', event => event.target.setCustomValidity(''));
+element('gym-cancel').addEventListener('click', resetGymForm);
+gymForm.addEventListener('submit', event => {
+  event.preventDefault();
+  const nameField = element('gym-name');
+  const name = nameField.value.trim();
+  if (!name) {
+    nameField.setCustomValidity('Inserisci il nome della palestra.');
+    nameField.reportValidity();
+    return;
+  }
+  const entry = {
+    id: gymEdit || Date.now().toString(36) + Math.random().toString(36).slice(2),
+    name,
+    time: element('gym-time').value,
+    iso: Number(element('gym-iso').value),
+    notes: element('gym-notes').value.trim()
+  };
+  personal.gyms = gymEdit ? personal.gyms.map(gym => gym.id === gymEdit ? entry : gym) : [...personal.gyms, entry];
+  savePersonal();
+  resetGymForm();
+  renderGyms();
+});
+
+window.restorePersonalState = data => {
+  if (data) personal = JSON.parse(data);
+  renderFavorites();
+  renderSlotReminders();
+  renderGyms();
+};
+window.restorePersonalState();
+renderQuickShot();
+
+
+// --- ESPOSIMETRO V2: scene stimate, equivalenze, foto di riferimento ---
+(() => {
+  const id = key => document.getElementById(key);
+  const isoOptions = [100,200,400,800,1600,3200,6400,12800,25600,51200];
+  const fOptions = [4,5.6,8,11,16,22]; // obiettivo Nikon Z 24-120 f/4 S
+  const times = [30,25,20,15,10,8,6,5,4,3,2.5,2,1.6,1.3,1,0.8,0.6,0.5,0.4,1/3,1/4,1/5,1/6,1/8,1/10,1/13,1/15,1/20,1/25,1/30,1/40,1/50,1/60,1/80,1/100,1/125,1/160,1/200,1/250,1/320,1/400,1/500,1/640,1/800,1/1000,1/1250,1/1600,1/2000,1/2500,1/3200,1/4000,1/5000,1/6400,1/8000];
+  function fill(key, array, selected, label) {
+    const select=id(key);
+    array.forEach(value => select.add(new Option(label(value),String(value))));
+    select.value=String(selected);
+  }
+  fill('meter-iso',isoOptions,100,x => 'ISO '+x);
+  fill('meter-aperture',fOptions,4,x => 'f/'+x);
+  fill('meter-comp',[-3,-2,-1,-2/3,-1/3,0,1/3,2/3,1,2,3],0,x => (x>0?'+':'')+(Math.round(x*3)/3).toLocaleString('it-IT')+' EV');
+  function nearest(t) { return times.reduce((a,b) => Math.abs(Math.log2(b/t)) < Math.abs(Math.log2(a/t)) ? b:a,times[0]); }
+  function pretty(t) { return t<0.75 ? '1/'+Math.round(1/t)+' s' : t.toLocaleString('it-IT',{maximumFractionDigits:1})+' s'; }
+  let lastText='';
+  function recalc(){
+    const ev=Number(id('meter-scene').value)+Number(id('meter-ev-adjust').value);
+    const iso=Number(id('meter-iso').value),f=Number(id('meter-aperture').value);
+    const comp=Number(id('meter-comp').value);
+    // EV100=log2(N²/t) - log2(ISO/100) ; compensazione positiva = più luce.
+    let raw = f*f/Math.pow(2,ev) *100/iso * Math.pow(2,comp);
+    let usedIso=iso, usedF=f;
+    const priority=id('meter-priority').value;
+    if (priority==='fast' && raw>1/800) {
+      const needed=iso*raw*800;
+      usedIso=isoOptions.find(x=>x>=needed) || isoOptions[isoOptions.length-1];
+      raw=f*f/Math.pow(2,ev)*100/usedIso*Math.pow(2,comp);
+    }
+    const safe=Math.max(times[times.length-1],Math.min(times[0],raw));
+    const t=nearest(safe);
+    id('meter-time').textContent=pretty(t);
+    id('meter-f').textContent='f/'+usedF;
+    id('meter-out-iso').textContent=String(usedIso);
+    id('meter-value').textContent='EV100 '+ev.toLocaleString('it-IT',{maximumFractionDigits:2})+' · '+(comp>=0?'+':'')+comp.toLocaleString('it-IT',{maximumFractionDigits:2})+' EV';
+    const warnings=[];
+    if(raw<times[times.length-1]||raw>times[0])warnings.push('Tempo fuori dall’intervallo 1/8000–30 s.');
+    if(priority==='fast'&&raw>1/800)warnings.push('Con questi valori 1/800 s richiederebbe ISO più elevati: rischio mosso.');
+    if(priority==='night'&&t<1)warnings.push('Treppiede utile se vuoi tenere gli ISO bassi.');
+    id('meter-caution').textContent=warnings.join(' ') || 'Stima iniziale: verifica istogramma e alte luci sulla Nikon.';
+    const tbody=id('meter-equiv-body');tbody.replaceChildren();
+    fOptions.forEach(fv=>{
+      let exact=fv*fv/Math.pow(2,ev)*100/usedIso*Math.pow(2,comp);
+      let row=document.createElement('tr');
+      [ 'f/'+fv, pretty(nearest(Math.max(times[times.length-1],Math.min(times[0],exact)))), String(usedIso) ].forEach(value=>{let cell=document.createElement('td');cell.textContent=value;row.append(cell);});
+      tbody.append(row);
+    });
+    lastText='Nikon Z6 III | EV100 '+ev.toFixed(2)+' | '+pretty(t)+' | f/'+usedF+' | ISO '+usedIso+' | Compensazione '+comp.toFixed(2)+' EV (stima dalla scena)';
+  }
+  ['meter-scene','meter-ev-adjust','meter-iso','meter-aperture','meter-comp','meter-priority'].forEach(key=>id(key).addEventListener('change',recalc));
+  id('meter-copy').addEventListener('click',()=>{
+    // Bridge nativo Scriptable: niente API clipboard web non affidabili nella WebView.
+    window.location.href='https://esposizione.invalid/copia?dati='+encodeURIComponent(lastText);
+    id('meter-status').textContent='Impostazioni inviate agli appunti di iOS.';
+  });
+  // Usa il selettore nativo iOS tramite HTML file input: non dipende dal bridge WebView.
+  id('meter-camera-input').addEventListener('change', event => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) {
+      id('meter-status').textContent='Nessuna foto acquisita. Controlla il permesso Fotocamera nelle impostazioni iOS.';
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      id('meter-status').textContent='Il file selezionato non è una fotografia.';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const preview = id('meter-preview');
+      preview.src = reader.result;
+      preview.style.display = 'block';
+      id('meter-status').textContent='Foto acquisita. Anteprima visiva: il valore EV è ancora stimato dalla scena selezionata.';
+    };
+    reader.onerror = () => {
+      id('meter-status').textContent='Impossibile leggere la fotografia. Riprova.';
+    };
+    reader.readAsDataURL(file);
+    // Permette di acquisire nuovamente anche lo stesso file.
+    event.target.value = '';
+  });
+  window.meterReceivePhoto = data => {
+    if(data){id('meter-preview').src='data:image/jpeg;base64,'+data;id('meter-preview').style.display='block';id('meter-status').textContent='Foto caricata. Non è una misura assoluta: confronta la scena con il preset EV selezionato.';}
+    else{id('meter-status').textContent='Foto non acquisita o operazione annullata.';}
+  };
+  recalc();
+})();
+
+</script>
+</body>
+</html>
