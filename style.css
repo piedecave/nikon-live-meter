@@ -76,3 +76,11 @@ main{max-width:760px;padding:10px 10px 24px}
 .tabs{isolation:isolate;z-index:100;touch-action:manipulation}
 .tabs button{touch-action:manipulation;position:relative;z-index:1}
 [hidden]{display:none!important}
+
+/* V7.2 – suggerimenti nel pannello Live e calibrazione guidata */
+.context-tip{margin:8px 0 4px;padding:9px 10px;border-left:3px solid #f5cf64;background:#26323e;border-radius:7px;font-size:12px;line-height:1.45;color:#f1e5bc}
+.calibration-wizard .wizard-stage-label{margin-top:10px}
+.calibration-overview{margin-top:12px;padding:10px;border-radius:10px;background:#10202b;border:1px solid #364d60}
+.sample-list{margin-top:9px;display:grid;gap:6px}
+.sample-item{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #30404e;padding:7px 0;font-size:12px}
+.sample-item strong{color:#f5cf64}.sample-item span{color:#d5e0e9;text-align:right}
