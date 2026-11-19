@@ -20,6 +20,9 @@
   fill('aperture',APERTURES,5.6,fmtF);fill('iso',ISO,200,x=>'ISO '+x);fill('iso-max',ISO,12800,x=>String(x));
   fill('cal-time',TIMES,1/125,fmtTime);fill('cal-f',APERTURES,8,fmtF);fill('cal-iso',ISO,100,x=>String(x));
   let stream=null, loop=null, facing='environment', last=null,calibration=null,lastOut=null;
+  let frozen=false, spotTap=false, spot={x:0.5,y:0.5};
+  let calibrations={};
+  const CAL_KEY='nikon-live-calibration-v6-cameras';
   let selectedCameraId='',cameraBusy=false;
   // La prima lettura video fissa SOLO un riferimento tonale relativo.
   let zoom=1;
@@ -34,8 +37,9 @@
     // Cambiando campo visivo, la luminanza varia: azzera il riferimento relativo.
     baseline=null;
     last=null;
+    showCalibration();
     recalculate();
-    if(stream)analyze();
+    if(stream){positionSpotMarker();analyze();}
   }
   zoomSlider.addEventListener('input',()=>updateZoom(zoomSlider.value));
   zoomButtons.forEach(button=>button.addEventListener('click',()=>updateZoom(button.dataset.zoom)));
@@ -44,26 +48,59 @@
   let context=null,canvas=document.createElement('canvas');canvas.width=160;canvas.height=120;
   context=canvas.getContext('2d',{willReadFrequently:true});
   const graph=$('histogram').getContext('2d');
-  try {const stored=JSON.parse(localStorage.getItem('nikon-live-calibration-v1')||'null');if(stored&&Number.isFinite(stored.ev)&&stored.ev>-15&&stored.ev<25) calibration=stored;}catch(e){}
-  function showCalibration(){if(calibration){$('calibration-status').textContent='Calibrato: EV100 '+calibration.ev.toFixed(2)+(calibration.median!=null?' · Riferimento tonale '+Math.round(calibration.median*100)+'%':' · riferimento tonale non disponibile')+'. La correzione live è sperimentale.';}else{$('calibration-status').textContent='Nessuna calibrazione: calcolo basato sulle condizioni di luce selezionate.';}}
+  try {
+    const saved=JSON.parse(localStorage.getItem(CAL_KEY)||'{}');
+    if(saved && typeof saved==='object' && !Array.isArray(saved)) calibrations=saved;
+  } catch(e) {}
+  function cameraKey(){
+    return selectedCameraId || stream?.getVideoTracks()[0]?.getSettings()?.deviceId || 'default-'+facing;
+  }
+  function saveCalibrations(){
+    try{localStorage.setItem(CAL_KEY,JSON.stringify(calibrations));return true;}catch(e){return false;}
+  }
+  function calibrationMatches(){
+    if(!calibration) return false;
+    if(calibration.metering!==$('metering').value || Math.abs((calibration.zoom||1)-zoom)>.051) return false;
+    if(calibration.metering==='spot' && Math.hypot(calibration.spotX-spot.x,calibration.spotY-spot.y)>.012) return false;
+    return true;
+  }
+  function loadCameraCalibration(){
+    const item=calibrations[cameraKey()];
+    calibration=item && Number.isFinite(item.ev) && item.ev>-15 && item.ev<25 ? item : null;
+    showCalibration();
+    recalculate();
+  }
+  function showCalibration(){
+    const cameraName=stream?.getVideoTracks()[0]?.label || (stream?'Fotocamera selezionata':'Avvia una fotocamera');
+    $('calibration-camera').textContent='Fotocamera di calibrazione: '+cameraName;
+    if(!calibration){
+      $('calibration-status').textContent='Nessuna calibrazione salvata per questa fotocamera: si utilizza l’EV della scena.';
+    } else if(!calibrationMatches()){
+      $('calibration-status').textContent='Calibrazione salvata (EV '+calibration.ev.toFixed(2)+'), ma zoom, zona di misura o punto spot sono cambiati. Ritorna alle impostazioni originarie o ricalibra: ora è usato l’EV della scena.';
+    } else {
+      $('calibration-status').textContent='Calibrazione attiva per questa fotocamera: EV100 '+calibration.ev.toFixed(2)+(calibration.median!=null?' · mediana '+Math.round(calibration.median*100)+'%':'')+'. La correzione live resta sperimentale.';
+    }
+  }
   function applyPreset(name){const p=PRESETS[name];$('aperture').value=String(p.f);$('iso').value=String(p.iso);$('scene').value=String(p.scene);$('target').value=String(p.target);$('iso-max').value=String(p.cap);recalculate();}
   function targetEV(){
     const scene=Number($('scene').value);
-    const anchor=calibration?calibration.ev:scene;
-    const reference=calibration&&calibration.median!=null?calibration.median:baseline;
+    const matched=calibrationMatches();
+    const anchor=matched?calibration.ev:scene;
+    const reference=matched&&calibration.median!=null?calibration.median:baseline;
     let d=0;
     if(last && reference!=null && $('tone-correction').checked){
       // Rapporto tra luminanze codificate sRGB: stima euristica, NON stop reali.
       d=clamp(0.70*Math.log2((last.median+0.03)/(reference+0.03)),-2,2);
     }
     return {ev:anchor+d,
-      description:(calibration?'EV Nikon calibrato':'EV scena presunto')+
+      description:(matched?'EV Nikon calibrato':'EV scena presunto')+
         (last && $('tone-correction').checked?' + variazione tonale live':''),
       delta:d};
   }
   // EV100 = log2(N²/t) - log2(ISO/100). A positive comp means more exposure.
   const exposureSeconds=(ev,f,iso,comp)=>f*f*100/iso*Math.pow(2,comp-ev);
   function recalculate(){
+    if(frozen) return;
     const {ev,description,delta}=targetEV();const f=Number($('aperture').value),initialIso=Number($('iso').value),comp=Number($('comp').value),maxIso=Number($('iso-max').value),den=Number($('target').value);const minTime=den?1/den:0;
     // Choose the lowest available ISO at or above initial ISO that reaches the requested minimum shutter time.
     const candidates=ISO.filter(x=>x>=initialIso&&x<=maxIso);
@@ -96,6 +133,16 @@
     for(const aperture of [4,5.6,8,11,16,22]){let rawT=exposureSeconds(ev,aperture,iso,comp),near=closest(TIMES,clamp(rawT,1/16000,30));const tr=document.createElement('tr');if(aperture===f)tr.className='current';for(const value of [fmtF(aperture),fmtTime(near),iso]){const td=document.createElement('td');td.textContent=String(value);tr.append(td);}body.append(tr);}
     lastOut={ev,iso,aperture:f,shutterSeconds:t,comp,source:description,rawShutterSeconds:raw,correction:delta};
   }
+  function drawHistogram(bins){
+    const w=graph.canvas.width,h=graph.canvas.height;
+    graph.clearRect(0,0,w,h);
+    const peak=Math.max(1,...bins);
+    for(let i=0;i<bins.length;i++){
+      const bh=(bins[i]/peak)*(h-6);
+      graph.fillStyle=i>=29?'#ff9d64':i<=2?'#7aafdb':'#f5cf64';
+      graph.fillRect(i*w/bins.length,h-bh,w/bins.length-1,bh);
+    }
+  }
   function analyze(){
     const video=$('camera');if(!stream||video.readyState<2)return;
     try{
@@ -103,10 +150,12 @@
       const vw=video.videoWidth,vh=video.videoHeight;
       const cropW=vw/zoom,cropH=vh/zoom;
       context.drawImage(video,(vw-cropW)/2,(vh-cropH)/2,cropW,cropH,0,0,canvas.width,canvas.height);const data=context.getImageData(0,0,canvas.width,canvas.height).data;const metering=$('metering').value,bins=new Array(32).fill(0),samples=[];let high=0,low=0,total=0;
-      for(let y=0;y<canvas.height;y+=2){for(let x=0;x<canvas.width;x+=2){let nx=(x-canvas.width/2)/(canvas.width/2),ny=(y-canvas.height/2)/(canvas.height/2),radius=Math.sqrt(nx*nx+ny*ny);if(metering==='center'&&radius>0.52)continue;if(metering==='spot'&&radius>0.15)continue;const i=(y*canvas.width+x)*4;const lum=(.2126*data[i]+.7152*data[i+1]+.0722*data[i+2])/255;samples.push(lum);bins[Math.min(31,Math.floor(lum*32))]++;total++;if(lum>.95)high++;if(lum<.05)low++;}}
-      if(!total)return;samples.sort((a,b)=>a-b);const median=samples[Math.floor(samples.length/2)];last={median,high:100*high/total,low:100*low/total};
+      for(let y=0;y<canvas.height;y+=2){for(let x=0;x<canvas.width;x+=2){let nx=(x-canvas.width/2)/(canvas.width/2),ny=(y-canvas.height/2)/(canvas.height/2),radius=Math.sqrt(nx*nx+ny*ny);if(metering==='center'&&radius>0.52)continue;if(metering==='spot'&&Math.hypot(x/canvas.width-spot.x,y/canvas.height-spot.y)>0.075)continue;const i=(y*canvas.width+x)*4;const lum=(.2126*data[i]+.7152*data[i+1]+.0722*data[i+2])/255;samples.push(lum);bins[Math.min(31,Math.floor(lum*32))]++;total++;if(lum>.95)high++;if(lum<.05)low++;}}
+      if(!total)return;samples.sort((a,b)=>a-b);const median=samples[Math.floor(samples.length/2)];
+      if(frozen){drawHistogram(bins);return;}
+      last={median,high:100*high/total,low:100*low/total};
       if(baseline===null){ baseline=median; frameCount=1; }$('median').textContent=(median*100).toFixed(1)+'%';$('highlights').textContent=last.high.toFixed(1)+'%';$('shadows').textContent=last.low.toFixed(1)+'%';
-      const w=graph.canvas.width,h=graph.canvas.height;graph.clearRect(0,0,w,h);const peak=Math.max(1,...bins);for(let i=0;i<bins.length;i++){const bh=(bins[i]/peak)*(h-6);graph.fillStyle=i>=29?'#ff9d64':i<=2?'#7aafdb':'#f5cf64';graph.fillRect(i*w/bins.length,h-bh,w/bins.length-1,bh);}recalculate();
+      drawHistogram(bins);recalculate();
     }catch(err){$('camera-status').textContent='Analisi video non disponibile: '+err.message;}
   }
   function cameraStatus(msg){$('camera-status').textContent=msg;}
@@ -156,6 +205,7 @@
     $('camera-pill').textContent='Video spento';$('camera-pill').classList.remove('active');
     $('camera-label').textContent='Anteprima non attiva';
     zoomAvailable(false);last=null;baseline=null;
+    setFrozen(false);calibration=null;showCalibration();
     $('median').textContent=$('highlights').textContent=$('shadows').textContent='—';
     cameraBusyUI(false);recalculate();
   }
@@ -175,12 +225,13 @@
       const video=$('camera');video.srcObject=stream;
       await video.play();
       selectedCameraId=stream.getVideoTracks()[0]?.getSettings()?.deviceId||deviceId||'';
+      loadCameraCalibration();
       $('camera-placeholder').hidden=true;$('camera-pill').textContent='LIVE';
       $('camera-pill').classList.add('active');
       $('camera-label').textContent=stream.getVideoTracks()[0]?.label||'Video live · nessun salvataggio';
-      zoomAvailable(true);video.style.transform='scale('+zoom+')';
+      zoomAvailable(true);$('freeze-reading').disabled=false;video.style.transform='scale('+zoom+')';
       baseline=null;last=null;frameCount=0;
-      loop=window.setInterval(analyze,500);analyze();
+      loop=window.setInterval(analyze,500);updateROI();analyze();
       cameraStatus('Fotocamera attiva. Nessun video viene inviato al server.');
       await refreshCameraDevices();
     }catch(e){
@@ -203,6 +254,70 @@
       selectedCameraId='';
     }
   }
+  function positionSpotMarker(){
+    const video=$('camera');const wrap=$('camera-wrap-control');
+    if(!stream||!video.videoWidth) return;
+    const rect=video.getBoundingClientRect(), outer=wrap.getBoundingClientRect();
+    const ratio=video.videoWidth/video.videoHeight;
+    const imageWidth=Math.min(rect.width,rect.height*ratio);
+    const imageHeight=imageWidth/ratio;
+    const px=rect.left+rect.width/2+(spot.x-.5)/zoom*imageWidth;
+    const py=rect.top+rect.height/2+(spot.y-.5)/zoom*imageHeight;
+    $('roi').style.setProperty('--spot-x',100*clamp((px-outer.left)/outer.width,0,1)+'%');
+    $('roi').style.setProperty('--spot-y',100*clamp((py-outer.top)/outer.height,0,1)+'%');
+  }
+  function updateROI(){
+    const metering=$('metering').value;
+    $('roi').className='roi roi-'+metering;
+    positionSpotMarker();
+    $('camera-wrap-control').classList.toggle('spot-enabled',spotTap);
+  }
+  function setFrozen(value){
+    frozen=Boolean(value && stream && lastOut);
+    $('freeze-reading').textContent=frozen?'Sblocca lettura':'Blocca lettura';
+    $('freeze-reading').setAttribute('aria-pressed',String(frozen));
+    $('freeze-reading').classList.toggle('on',frozen);
+    $('freeze-reading').disabled=!stream;
+    $('freeze-status').classList.toggle('frozen',frozen);
+    $('freeze-status').textContent=frozen
+      ? 'Lettura BLOCCATA: EV, tempo, diaframma e ISO sono congelati. L’istogramma continua a muoversi.'
+      : 'Lettura continua: EV e valori Nikon possono aggiornarsi.';
+    if(!frozen){baseline=last?last.median:null;recalculate();}
+  }
+  $('freeze-reading').addEventListener('click',()=>setFrozen(!frozen));
+  $('spot-tap').addEventListener('click',()=>{
+    spotTap=!spotTap;
+    $('spot-tap').textContent='Spot al tocco: '+(spotTap?'ON':'OFF');
+    $('spot-tap').setAttribute('aria-pressed',String(spotTap));
+    $('spot-tap').classList.toggle('on',spotTap);
+    if(spotTap){$('metering').value='spot';}
+    updateROI();showCalibration();
+    if(stream)analyze();
+  });
+  $('camera-wrap-control').addEventListener('click',event=>{
+    if(!spotTap || !stream) return;
+    const video=$('camera');
+    const rect=video.getBoundingClientRect();
+    const wrap=$('camera-wrap-control').getBoundingClientRect();
+    if(!video.videoWidth || !video.videoHeight) return;
+    // object-fit:contain + transform:scale(zoom): use visible video image geometry.
+    const naturalRatio=video.videoWidth/video.videoHeight;
+    const displayedWidth=Math.min(rect.width,rect.height*naturalRatio);
+    const displayedHeight=displayedWidth/naturalRatio;
+    const dx=(event.clientX-(rect.left+rect.width/2))/displayedWidth;
+    const dy=(event.clientY-(rect.top+rect.height/2))/displayedHeight;
+    // Coordinates on the CROPPED sampling canvas (after the digital zoom).
+    spot.x=clamp(0.5+dx*zoom,0.01,0.99);
+    spot.y=clamp(0.5+dy*zoom,0.01,0.99);
+    // Display the marker in the visible preview, matching the sampling position.
+    const markerX=clamp(event.clientX-wrap.left,0,wrap.width);
+    const markerY=clamp(event.clientY-wrap.top,0,wrap.height);
+    $('roi').style.setProperty('--spot-x',100*markerX/wrap.width+'%');
+    $('roi').style.setProperty('--spot-y',100*markerY/wrap.height+'%');
+    baseline=null;
+    $('spot-status').textContent='Spot selezionato nel punto toccato. Tocca altrove per cambiare zona.';
+    showCalibration();if(stream)analyze();
+  });
   $('start-camera').addEventListener('click',()=>startCamera());
   $('stop-camera').addEventListener('click',()=>{stopCamera();cameraStatus('Videocamera disattivata.');});
   $('refresh-cameras').addEventListener('click',refreshCameraDevices);
@@ -215,12 +330,30 @@
   navigator.mediaDevices?.addEventListener?.('devicechange',()=>{
     if(stream&&!cameraBusy)refreshCameraDevices();
   });
-  $('metering').addEventListener('change',()=>{$('roi').className='roi roi-'+$('metering').value;baseline=null;recalculate();});
+  $('metering').addEventListener('change',()=>{
+    spotTap=$('metering').value==='spot';
+    $('spot-tap').textContent='Spot al tocco: '+(spotTap?'ON':'OFF');
+    $('spot-tap').setAttribute('aria-pressed',String(spotTap));
+    $('spot-tap').classList.toggle('on',spotTap);
+    updateROI();baseline=null;showCalibration();recalculate();if(stream)analyze();
+  });
   $('preset').addEventListener('change',()=>{baseline=last?last.median:null;applyPreset($('preset').value);});
   for(const id of ['aperture','iso','comp','target','iso-max','tone-correction'])$(id).addEventListener('change',recalculate);
   $('scene').addEventListener('change',()=>{baseline=last?last.median:null;recalculate();});
-  $('calibrate').addEventListener('click',()=>{const t=Number($('cal-time').value),f=Number($('cal-f').value),iso=Number($('cal-iso').value);const ev=Math.log2(f*f/t)-Math.log2(iso/100);if(!Number.isFinite(ev))return;calibration={ev,median:last?last.median:null};try{localStorage.setItem('nikon-live-calibration-v1',JSON.stringify(calibration));}catch(e){}showCalibration();recalculate();});
-  $('reset-calibration').addEventListener('click',()=>{calibration=null;try{localStorage.removeItem('nikon-live-calibration-v1');}catch(e){}showCalibration();recalculate();});
+  $('calibrate').addEventListener('click',()=>{
+    if(!stream || !last){$('calibration-status').textContent='Avvia prima la fotocamera e attendi una lettura: la calibrazione richiede una scena inquadrata.';return;}
+    if(frozen){$('calibration-status').textContent='Sblocca la lettura prima di calibrare.';return;}
+    const t=Number($('cal-time').value),f=Number($('cal-f').value),iso=Number($('cal-iso').value);
+    const ev=Math.log2(f*f/t)-Math.log2(iso/100);
+    if(!Number.isFinite(ev)) return;
+    calibration={ev,median:last.median,zoom,metering:$('metering').value,spotX:spot.x,spotY:spot.y};
+    calibrations[cameraKey()]=calibration;
+    const saved=saveCalibrations();showCalibration();recalculate();
+    if(!saved)$('calibration-status').textContent+=' Attenzione: Safari non ha consentito il salvataggio permanente.';
+  });
+  $('reset-calibration').addEventListener('click',()=>{
+    delete calibrations[cameraKey()];calibration=null;saveCalibrations();showCalibration();recalculate();
+  });
   $('copy-settings').addEventListener('click',async()=>{if(!lastOut)return;const o=lastOut;const val=`Nikon Z6 III | M | ${fmtTime(o.shutterSeconds)} | ${fmtF(o.aperture)} | ISO ${o.iso} | EV100 ${o.ev.toFixed(2)} | Comp. ${o.comp.toFixed(2)} EV | ${o.source}`;try{await navigator.clipboard.writeText(val);$('copy-feedback').textContent='Valori copiati negli appunti.';}catch(e){$('copy-feedback').textContent='Copia automatica non disponibile: seleziona manualmente i valori mostrati.';}});
   $('send-scriptable').addEventListener('click',()=>{if(!lastOut)return;const o=lastOut;const query=new URLSearchParams({ev:o.ev.toFixed(3),iso:String(o.iso),aperture:String(o.aperture),shutter:String(o.shutterSeconds)});window.location.href='scriptable:///run/Nikon%20Live%20Import?'+query.toString();});
   $('tab-meter').addEventListener('click',()=>{$('view-meter').hidden=false;$('view-guide').hidden=true;$('tab-meter').classList.add('selected');$('tab-guide').classList.remove('selected');});

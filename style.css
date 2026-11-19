@@ -19,3 +19,12 @@
 .camera-select-row select{margin-top:0;min-width:0}
 .camera-select-row button{white-space:nowrap}
 .camera-select-row select:disabled{opacity:.55}
+
+/* V6: scelta spot sull'anteprima e blocco della lettura */
+.camera-wrap.spot-enabled{cursor:crosshair;touch-action:manipulation}
+.camera-wrap.spot-enabled:focus-visible{outline:3px solid #f5cf64;outline-offset:2px}
+.roi-spot{width:48px;height:48px;left:var(--spot-x,50%);top:var(--spot-y,50%);border-radius:50%;box-shadow:0 0 0 2px #171d257a}
+.roi-spot:after{content:"+";position:absolute;left:50%;top:50%;transform:translate(-50%,-53%);font-size:18px;color:#f5cf64;font-weight:700}
+.v6-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.v6-controls button.on{background:#f5cf64;color:#15191f;border-color:#f5cf64}
+#freeze-status.frozen{color:#f5cf64;font-weight:700}
